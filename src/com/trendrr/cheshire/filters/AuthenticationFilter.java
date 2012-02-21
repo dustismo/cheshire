@@ -1,0 +1,139 @@
+/**
+ * 
+ */
+package com.trendrr.cheshire.filters;
+
+import java.util.List;
+import java.util.Set;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.jboss.netty.handler.codec.http.HttpResponse;
+
+import com.trendrr.cheshire.authentication.AuthToken;
+import com.trendrr.cheshire.authentication.AuthToken;
+import com.trendrr.cheshire.authentication.AuthenticationProvider;
+import com.trendrr.cheshire.authentication.InvalidAuthToken;
+import com.trendrr.json.simple.JSONFormatter;
+import com.trendrr.json.simple.JSONValue;
+import com.trendrr.oss.DynMap;
+import com.trendrr.oss.Reflection;
+import com.trendrr.oss.networking.strest.StrestRequest;
+import com.trendrr.strest.StrestException;
+import com.trendrr.strest.StrestHttpException;
+import com.trendrr.strest.server.StrestController;
+import com.trendrr.strest.server.StrestControllerFilter;
+
+
+/**
+ * @author Dustin Norlander
+ * @created Jan 27, 2012
+ * 
+ */
+public class AuthenticationFilter implements StrestControllerFilter  {
+
+	protected Log log = LogFactory.getLog(AuthenticationFilter.class);
+	
+	public static void main(String ...strings) {
+		DynMap test = new DynMap();
+		test.put("test", 1);
+//		AbstractAuthToken token = new AbstractAuthToken() {
+//			
+//		};
+//		System.out.println(token);
+//		test.put("auth_token", token);
+//		System.out.println(test.toJSONString());
+	}
+	
+	
+	static {
+		JSONValue.registerFormatter(AuthToken.class, new JSONFormatter() {
+			
+			@Override
+			public String toJSONString(Object value) {
+				return ((AuthToken)value).toDynMap().toJSONString();
+			}
+		});
+		
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.trendrr.strest.server.StrestControllerFilter#before(com.trendrr.strest.server.StrestController)
+	 */
+	@Override
+	public void before(StrestController controller) throws StrestException {
+		
+		try {
+			AuthToken token = this.findAuthToken(controller);
+			
+			if (token == null) {
+				//we dont have a token in the connection or txn.
+				
+				//now do the real checking.
+				//run through all the authentication providers until we find a match.
+				List<String> authProviderClasses = controller.getServerConfig().getListOrEmpty(String.class, "authentication.providers");
+				for (String cls : authProviderClasses) {
+					if (token != null) {
+						continue;
+					}
+					AuthenticationProvider ap = Reflection.defaultInstance(AuthenticationProvider.class, cls);
+					token = ap.authenticate(controller);
+				}
+			}
+			if (token instanceof InvalidAuthToken) {
+				throw StrestHttpException.UNAUTHORIZED("Invalid authentication");
+			}
+			
+			if (token != null) {
+				//set the AuthToken in the controller...
+				controller.getTxnStorage().put("auth_token", token);
+				//store in the session and the connection..
+				if (token.isSaveInConnection())
+					controller.getConnectionStorage().put("auth_token", token);
+			}
+		} catch (Exception e) {
+			log.error("Caught", e);
+			throw StrestHttpException.INTERNAL_SERVER_ERROR("Unable to reload auth token");
+		}
+		
+	}
+	
+	/**
+	 * looks in the session and connection for the auth token.
+	 * @return
+	 */
+	public AuthToken findAuthToken(StrestController controller) throws Exception {
+		AuthToken token = null;
+		
+		//first check txn storage.
+		Object at = controller.getTxnStorage().get("auth_token");
+		if (at == null) {
+			//new check connection storage.
+			at = controller.getConnectionStorage().get("auth_token");
+		}
+		if (at != null) {
+			if (at instanceof AuthToken) {
+				token = (AuthToken)at;
+			} 
+		}
+		return token;
+	}
+	/* (non-Javadoc)
+	 * @see com.trendrr.strest.server.StrestControllerFilter#after(com.trendrr.strest.server.StrestController)
+	 */
+	@Override
+	public void after(StrestController controller) throws StrestException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	/* (non-Javadoc)
+	 * @see com.trendrr.strest.server.StrestControllerFilter#error(com.trendrr.strest.server.StrestController, org.jboss.netty.handler.codec.http.HttpResponse, java.lang.Exception)
+	 */
+	@Override
+	public void error(StrestController controller, HttpResponse response,
+			Exception exception) {
+		// TODO Auto-generated method stub
+		
+	}
+}
