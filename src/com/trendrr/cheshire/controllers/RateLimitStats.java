@@ -12,7 +12,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.trendrr.cheshire.CheshireApi;
-import com.trendrr.cheshire.CheshireController;
+import com.trendrr.cheshire.CheshireApiController;
 import com.trendrr.cheshire.caching.TrendrrCaches;
 import com.trendrr.oss.DynMap;
 import com.trendrr.oss.DynMapFactory;
@@ -31,7 +31,7 @@ import com.trendrr.oss.cache.TrendrrCache;
 	access = { "administrator" }
 //	requiredParams = {"user_id"}
 )
-public class RateLimitStats extends CheshireController {
+public class RateLimitStats extends CheshireApiController {
 
 	protected Log log = LogFactory.getLog(RateLimitStats.class);
 	

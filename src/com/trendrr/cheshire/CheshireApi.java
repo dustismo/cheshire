@@ -40,5 +40,4 @@ public @interface CheshireApi {
 		 * @return
 		 */
 		int cacheTimeoutSeconds() default 0;
-		boolean enableSessions() default false;
 }

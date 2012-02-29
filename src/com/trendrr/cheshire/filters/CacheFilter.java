@@ -10,7 +10,7 @@ import org.apache.commons.logging.LogFactory;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 
-import com.trendrr.cheshire.CheshireController;
+import com.trendrr.cheshire.CheshireApiController;
 import com.trendrr.cheshire.caching.TrendrrCaches;
 import com.trendrr.oss.DynMap;
 import com.trendrr.oss.Timeframe;
@@ -39,11 +39,11 @@ public class CacheFilter extends CheshireFilter {
 	 * @param controller
 	 * @return
 	 */
-	protected TrendrrCache getCachePersistence(CheshireController controller) {
+	protected TrendrrCache getCachePersistence(CheshireApiController controller) {
 		return TrendrrCaches.getCacheOrDefault("cache", controller);
 	}
 	
-	private boolean shouldCache(CheshireController controller) {
+	private boolean shouldCache(CheshireApiController controller) {
 		if (disabled) {
 			return false;
 		}
@@ -74,7 +74,7 @@ public class CacheFilter extends CheshireFilter {
 	 * @see com.trendrr.cheshire.filters.CheshireFilter#before(com.trendrr.cheshire.CheshireController)
 	 */
 	@Override
-	public void before(CheshireController controller) throws StrestException {
+	public void before(CheshireApiController controller) throws StrestException {
 		if (!this.shouldCache(controller)) {
 			return;
 		}
@@ -111,7 +111,7 @@ public class CacheFilter extends CheshireFilter {
 	 * @param timeout
 	 * @param res
 	 */
-	protected void save(CheshireController controller, int timeout, HttpResponse res) {
+	protected void save(CheshireApiController controller, int timeout, HttpResponse res) {
 		if (controller == null)
 			return;
 		
@@ -203,7 +203,7 @@ public class CacheFilter extends CheshireFilter {
 	 * @see com.trendrr.cheshire.filters.CheshireFilter#after(com.trendrr.cheshire.CheshireController)
 	 */
 	@Override
-	public void after(CheshireController controller) throws StrestException {
+	public void after(CheshireApiController controller) throws StrestException {
 		if (!this.shouldCache(controller)) {
 			return;
 		}
@@ -214,10 +214,10 @@ public class CacheFilter extends CheshireFilter {
 	 * @see com.trendrr.cheshire.filters.CheshireFilter#error(com.trendrr.cheshire.CheshireController, org.jboss.netty.handler.codec.http.HttpResponse, java.lang.Exception)
 	 */
 	@Override
-	public void error(CheshireController controller, HttpResponse response,
+	public void error(CheshireApiController controller, HttpResponse response,
 			Exception exception) {
 		//if the controller is null, its a 404 or something we don't care about.
-		if (controller == null)
+		if (controller == null || !this.shouldCache(controller))
 			return;
 		this.save(controller, this.errorTimeoutSeconds, response);
 	}
