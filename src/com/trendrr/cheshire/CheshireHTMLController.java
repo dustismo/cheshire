@@ -60,7 +60,7 @@ public class CheshireHTMLController extends CheshireController {
 	 */
 	public void render(String template, DynMap templateParams) {
 //		String root = this.getServerConfig().getString("view_path", "views");
-		String root = "views";
+		String root = CheshireGlobals.baseDir + "views";
 		
 		if (!template.endsWith(".html")) {
 			template = template + ".html";
@@ -80,7 +80,7 @@ public class CheshireHTMLController extends CheshireController {
 //			new MustacheBuilder().parse(t, template).execute(str, new Scope(templateParams, new Scope(this)));
 			
 			System.out.println(str);
-//			this.setResponseUTF8(ContentTypes.HTML, str.toString());
+			this.setResponseUTF8(ContentTypes.HTML, str.toString());
 		} catch (MustacheException e) {
 			log.error("Caught", e);
 		} catch (Exception e) {
