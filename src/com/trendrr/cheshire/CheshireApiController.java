@@ -29,7 +29,7 @@ import com.trendrr.strest.server.StrestController;
  * @created Jan 30, 2012
  * 
  */
-public class CheshireApiController extends AbstractCheshireController {
+public class CheshireApiController extends CheshireController {
 
 	protected static Log log = LogFactory.getLog(CheshireApiController.class);
 	

@@ -12,7 +12,8 @@ import org.apache.commons.logging.LogFactory;
  * Providers can call this in cases where the authentication params are invalid.
  * 
  * Is a standard auth token that doesn't allow access to anything.  This way you can 
- * take advantage of token caching when getting slammed by bogus auth.
+ * take advantage of token caching when getting slammed by bogus auth.  Using this is in no way 
+ * required, but useful when authentication is a heavyweight process. 
  * 
  * 
  * @author Dustin Norlander

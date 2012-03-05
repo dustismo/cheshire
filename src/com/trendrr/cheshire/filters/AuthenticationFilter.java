@@ -3,8 +3,10 @@
  */
 package com.trendrr.cheshire.filters;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -18,6 +20,7 @@ import com.trendrr.json.simple.JSONFormatter;
 import com.trendrr.json.simple.JSONValue;
 import com.trendrr.oss.DynMap;
 import com.trendrr.oss.Reflection;
+import com.trendrr.oss.concurrent.LazyInitObject;
 import com.trendrr.oss.networking.strest.StrestRequest;
 import com.trendrr.strest.StrestException;
 import com.trendrr.strest.StrestHttpException;
@@ -47,6 +50,9 @@ public class AuthenticationFilter implements StrestControllerFilter  {
 	
 	
 	static {
+		/*
+		 * register a formatter for the authtoken so it serializes to json properly.
+		 */
 		JSONValue.registerFormatter(AuthToken.class, new JSONFormatter() {
 			
 			@Override
@@ -54,6 +60,28 @@ public class AuthenticationFilter implements StrestControllerFilter  {
 				return ((AuthToken)value).toDynMap().toJSONString();
 			}
 		});
+	}
+	
+	private static ConcurrentHashMap<String, List<AuthenticationProvider>> providers = new ConcurrentHashMap<String, List<AuthenticationProvider>>();
+	
+	private List<AuthenticationProvider> getAuthProv(String namespace, StrestController controller) {
+		List<AuthenticationProvider> auth = providers.get(namespace);
+		if (auth != null) {
+			return auth;
+		}
+		auth = new ArrayList<AuthenticationProvider>();
+		List<String> authProviderClasses = controller.getServerConfig().getListOrEmpty(String.class, namespace + ".authentication");
+		for (String cls : authProviderClasses) {
+			AuthenticationProvider ap;
+			try {
+				ap = Reflection.defaultInstance(AuthenticationProvider.class, cls);
+				auth.add(ap);
+			} catch (Exception e) {
+				log.error("Unable to instantiate auth provider: " + cls, e);
+			}
+		}
+		providers.putIfAbsent(namespace, auth);
+		return providers.get(namespace);
 		
 	}
 	
@@ -68,15 +96,13 @@ public class AuthenticationFilter implements StrestControllerFilter  {
 			
 			if (token == null) {
 				//we dont have a token in the connection or txn.
-				
 				//now do the real checking.
 				//run through all the authentication providers until we find a match.
-				List<String> authProviderClasses = controller.getServerConfig().getListOrEmpty(String.class, "authentication.providers");
-				for (String cls : authProviderClasses) {
+				
+				for (AuthenticationProvider ap: this.getAuthProv(controller.getFilterNamespace(), controller)) {
 					if (token != null) {
 						continue;
 					}
-					AuthenticationProvider ap = Reflection.defaultInstance(AuthenticationProvider.class, cls);
 					token = ap.authenticate(controller);
 				}
 			}
@@ -91,11 +117,12 @@ public class AuthenticationFilter implements StrestControllerFilter  {
 				if (token.isSaveInConnection())
 					controller.getConnectionStorage().put("auth_token", token);
 			}
+		} catch (StrestException e) {
+			throw e;
 		} catch (Exception e) {
 			log.error("Caught", e);
-			throw StrestHttpException.INTERNAL_SERVER_ERROR("Unable to reload auth token");
+			throw StrestHttpException.INTERNAL_SERVER_ERROR("Unable to authenticate. (" + e.getMessage() + ")");
 		}
-		
 	}
 	
 	/**

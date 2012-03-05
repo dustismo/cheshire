@@ -10,6 +10,7 @@ import org.apache.commons.logging.LogFactory;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 
 import com.trendrr.cheshire.CheshireApiController;
+import com.trendrr.cheshire.CheshireController;
 import com.trendrr.oss.DynMap;
 import com.trendrr.strest.StrestException;
 import com.trendrr.strest.server.ResponseBuilder;
@@ -35,19 +36,19 @@ public class ReturnTypeFilter extends CheshireFilter {
 	 * @see com.trendrr.strest.server.StrestControllerFilter#before(com.trendrr.strest.server.StrestController)
 	 */
 	@Override
-	public void before(CheshireApiController cont) throws StrestException {
-		cont.setReturnType(cont.getParams().getString("return_type"));
+	public void before(CheshireController cont) throws StrestException {
+		((CheshireApiController)cont).setReturnType(cont.getParams().getString("return_type"));
 	}
 
 	/* (non-Javadoc)
 	 * @see com.trendrr.strest.server.StrestControllerFilter#after(com.trendrr.strest.server.StrestController)
 	 */
 	@Override
-	public void after(CheshireApiController cont) throws StrestException {
+	public void after(CheshireController cont) throws StrestException {
 		if ((cont.getResponse().getContent() == null || cont.getResponse().getContent().readableBytes()==0)
 				&& cont.isSendResponse()) {
-			String returnType = cont.getReturnType();
-			this.setBytes(cont, returnType, cont.getResponse(), cont.getReturnResult());
+			String returnType = ((CheshireApiController)cont).getReturnType();
+			this.setBytes(cont, returnType, cont.getResponse(), ((CheshireApiController)cont).getReturnResult());
 		}
 	}
 
@@ -55,7 +56,7 @@ public class ReturnTypeFilter extends CheshireFilter {
 	 * @see com.trendrr.strest.server.StrestControllerFilter#error(com.trendrr.strest.server.StrestController, org.jboss.netty.handler.codec.http.HttpResponse, java.lang.Exception)
 	 */
 	@Override
-	public void error(CheshireApiController controller, HttpResponse response,
+	public void error(CheshireController controller, HttpResponse response,
 			Exception exception) {
 		String type = "json";
 		if (controller != null) {
@@ -64,7 +65,7 @@ public class ReturnTypeFilter extends CheshireFilter {
 		this.setBytes(controller, type, response, new DynMap());
 	}
 	
-	private void setBytes(CheshireApiController controller, String type, HttpResponse response, DynMap val) {
+	private void setBytes(CheshireController controller, String type, HttpResponse response, DynMap val) {
 		if (type == null)
 			type = "json";
 		
@@ -75,8 +76,8 @@ public class ReturnTypeFilter extends CheshireFilter {
 		DynMap status = val.get(DynMap.class, "status", new DynMap());
 		status.putIfAbsent("message", response.getStatus().getReasonPhrase());
 		status.put("code", response.getStatus().getCode());	
-		if (controller != null && !controller.getWarnings().isEmpty()) {
-			status.put("warnings", controller.getWarnings());
+		if (controller != null && !((CheshireApiController)controller).getWarnings().isEmpty()) {
+			status.put("warnings", ((CheshireApiController)controller).getWarnings());
 		}
 		
 		val.put("status", status);

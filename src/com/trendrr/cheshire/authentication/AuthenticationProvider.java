@@ -11,6 +11,9 @@ import com.trendrr.strest.server.StrestController;
 
 
 /**
+ * 
+ * Implements a single authentication scheme.  a single instance will be shared across multiple invokations so this should not hold any state.  
+ * 
  * @author Dustin Norlander
  * @created Jan 27, 2012
  * 
