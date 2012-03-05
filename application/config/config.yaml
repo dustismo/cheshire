@@ -1,0 +1,59 @@
+# Example YAML config file
+
+
+threads :
+   #threads that handle the io, usually set this to the 2 * # of cores	
+   io : 8 
+   # these are the threads that handle all the controller logic.
+   # set this higher if your app uses lots of blocking calls
+   worker : 35 
+
+# Packages to search for controllers in.
+# packages are searched recursively
+controller_packages:
+   - com.trendrr.cheshire.controllers
+
+html:
+   filters:
+      - com.trendrr.cheshire.filters.AccessLogFilter
+      - com.trendrr.cheshire.filters.SessionFilter
+      - com.trendrr.cheshire.filters.AuthenticationFilter
+   authentication:
+      - com.trendrr.v4.authentication.SessionAuthentication
+
+api:
+   filters:
+      - com.trendrr.cheshire.filters.AccessLogFilter
+      - com.trendrr.cheshire.filters.JsonpFilter
+      - com.trendrr.cheshire.filters.AuthenticationFilter
+   authentication:
+      - com.trendrr.v4.authentication.AuthAuthentication
+
+
+# This section configures the ssl listener.
+# remove if you do not want ssl
+#ssl:
+#   port: 8001
+#   keystore: /home/dustin/keystore.jks
+#   keystore_password: strest
+#   certificate_password: strest
+
+# Configuration of the default listener (i.e. regular http/strest)
+default:
+   port: 8010
+
+
+# The default TrendrrCache implementation.  this will be used for 
+# Sessions, caching, and execution reports if no specific 
+# implementation is found for those.
+default_trendrr_cache:
+   classname : com.trendrr.shared.caching.TrendrrXMemcached
+   # Memcache host string (can be multiple urls comma delim here)
+   host : localhost:11111
+ 
+  
+access_log:
+   filename : logs/access.log
+   # How much time is represented by each file
+   file_time_scale : 6 hours
+   max_files : 10

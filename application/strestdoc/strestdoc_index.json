@@ -1,0 +1,1 @@
+{"categories":[{"category":"default","routes":[{"authenticate":true,"abstract":"Gives stats about the rate limiting filter.","route":"\/admin\/rate_limit\/stats","method":["GET"],"access":["administrator"]}]}]}

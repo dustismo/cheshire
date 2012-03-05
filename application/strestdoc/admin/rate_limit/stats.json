@@ -1,0 +1,1 @@
+{"authenticate":true,"route":"\/admin\/rate_limit\/stats","description":"Gives stats about the rate limiting filter.","method":["GET"],"access":["administrator"]}
