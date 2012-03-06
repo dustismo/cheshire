@@ -3,6 +3,8 @@
  */
 package com.trendrr.cheshire.filters;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
@@ -10,6 +12,7 @@ import org.apache.commons.logging.LogFactory;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 
 import com.trendrr.cheshire.CheshireController;
+import com.trendrr.cheshire.CheshireHTMLController;
 import com.trendrr.cheshire.authentication.AuthToken;
 import com.trendrr.strest.StrestException;
 import com.trendrr.strest.StrestHttpException;
@@ -33,9 +36,18 @@ public class AccessFilter extends CheshireFilter {
 		if (!controller.requireAuthentication()) {
 			return;
 		}
-		
 		AuthToken auth = controller.getAuthToken();
 		if (auth == null) {
+			if (controller instanceof CheshireHTMLController) {
+				try {
+					((CheshireHTMLController)controller).redirect(controller.getServerConfig().getString("html.pages.login", "/login") + "?forward=" + 
+							URLEncoder.encode(controller.getRequest().getUri(), "utf-8"));
+				} catch (UnsupportedEncodingException e) {
+					log.error("Exception while trying to redirect to login page:", e);
+					throw StrestHttpException.FORBIDDEN("Authentication is manditory (" + e.getMessage() + ")");
+				}
+				return;
+			}
 			throw StrestHttpException.FORBIDDEN("Authentication is manditory");
 		}
 		

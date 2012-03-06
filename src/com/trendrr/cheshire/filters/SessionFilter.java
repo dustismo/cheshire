@@ -18,6 +18,8 @@ import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.util.internal.ConcurrentHashMap;
 
+import com.trendrr.cheshire.CheshireController;
+import com.trendrr.cheshire.CheshireHTMLController;
 import com.trendrr.cheshire.caching.TrendrrCaches;
 import com.trendrr.oss.DynMap;
 import com.trendrr.oss.IsoDateUtil;
@@ -40,21 +42,18 @@ import com.trendrr.strest.server.StrestRouter;
  * @created Jun 14, 2011
  * 
  */
-public class SessionFilter implements StrestControllerFilter {
+public class SessionFilter extends CheshireFilter {
 
 	protected Log log = LogFactory.getLog(SessionFilter.class);
 	protected static String SESSION = "sessionId";
 	protected int maxAge = 60*30; //30 minutes
-	
-//	protected static ConcurrentHashMap<StrestRouter, LazyInit> persistenceInit = new ConcurrentHashMap<StrestRouter, LazyInit>();
-//	protected static ConcurrentHashMap<StrestRouter, TrendrrCache> persistence = new ConcurrentHashMap<StrestRouter,TrendrrCache>();
 	
 	/**
 	 * should this filter run or be skipped?
 	 * @param controller
 	 * @return
 	 */
-	protected boolean shouldRun(StrestController controller) {
+	protected boolean shouldRun(CheshireController controller) {
 		if (controller == null) {
 			return false; //wtf?
 		}
@@ -62,8 +61,10 @@ public class SessionFilter implements StrestControllerFilter {
 		if (controller.isStrest()) {
 			return false;
 		}
-		
-		if (controller.routes()[0].startsWith("/static")) {
+		if (!(controller instanceof CheshireHTMLController)) {
+			return false;
+		}
+		if (!((CheshireHTMLController)controller).enableSessions()) {
 			return false;
 		}
 		
@@ -76,7 +77,7 @@ public class SessionFilter implements StrestControllerFilter {
 	 * @see com.trendrr.strest.server.StrestControllerFilter#before(com.trendrr.strest.server.StrestController)
 	 */
 	@Override
-	public void before(StrestController controller) throws StrestException {
+	public void before(CheshireController controller) throws StrestException {
 		if (!this.shouldRun(controller)) {
 			return;
 		}
@@ -114,7 +115,7 @@ public class SessionFilter implements StrestControllerFilter {
         		return;
         	}
         	if (vals != null) {
-        		controller.getSessionStorage().putAll(vals);
+        		((CheshireHTMLController)controller).getSessionStorage().putAll(vals);
         	}
         	controller.getConnectionStorage().put(SESSION, sessionId);
         }
@@ -126,43 +127,15 @@ public class SessionFilter implements StrestControllerFilter {
 	 * @param controller
 	 * @return
 	 */
-	protected TrendrrCache getSessionPersistence(final StrestController controller) {
+	protected TrendrrCache getSessionPersistence(final CheshireController controller) {
 		return TrendrrCaches.getCacheOrDefault("sessions", controller);
-		
-//		persistenceInit.putIfAbsent(controller.getRouter(), new LazyInit());
-//		LazyInit init = persistenceInit.get(controller.getRouter());
-//		if (init.start()) {
-//			//lazily initialize
-//			try {
-//				
-//				DynMap sessionConfig = controller.getServerConfig().getMap("sessions", new DynMap());
-//				String cls = sessionConfig.getString("persistence", "com.trendrr.strest.contrib.sessions.DefaultSessionPersistence");
-//				
-//				TrendrrCache per = persistence.get(cls);
-//				if (per == null) {
-//					try {
-//						per = (TrendrrCache)Reflection.instance(Class.forName(cls), sessionConfig);
-//					} catch (Exception e) {
-//						log.warn("Unable to load TrendrrCache class: " + cls);
-//					}
-//				}
-//				if (per == null) {
-//					log.warn("No sessions.persistence class available, using dummy provider");
-//					per = new InMemoryTrendrrCache(sessionConfig);
-//				}
-//				persistence.put(controller.getRouter(), per);
-//			} finally {
-//				init.end();
-//			}
-//		}
-//		return persistence.get(controller.getRouter());
 	}
 	
 	/* (non-Javadoc)
 	 * @see com.trendrr.strest.server.StrestControllerFilter#after(com.trendrr.strest.server.StrestController)
 	 */
 	@Override
-	public void after(StrestController controller) throws StrestException {
+	public void after(CheshireController controller) throws StrestException {
 		if (!this.shouldRun(controller)) {
 			return;
 		}
@@ -183,7 +156,7 @@ public class SessionFilter implements StrestControllerFilter {
 		}
 		
 		
-		if (sessionId == null && !controller.getSessionStorage().isEmpty()) {
+		if (sessionId == null && !((CheshireHTMLController)controller).getSessionStorage().isEmpty()) {
 			CookieEncoder cookieEncoder = new CookieEncoder(true);
 			sessionId = UUID.randomUUID().toString();
 			Cookie cookie = new DefaultCookie(SESSION, sessionId);
@@ -193,9 +166,9 @@ public class SessionFilter implements StrestControllerFilter {
 		}
 		//save the session.
 		Date expires = new Date(new Date().getTime()+(1000*this.maxAge));
-		controller.getSessionStorage().put("expires", IsoDateUtil.getIsoDate(expires));
+		((CheshireHTMLController)controller).getSessionStorage().put("expires", IsoDateUtil.getIsoDate(expires));
 		if (sessionId != null) {
-			this.getSessionPersistence(controller).set(sessionId, DynMap.instance(controller.getSessionStorage()).toJSONString(), expires);
+			this.getSessionPersistence(controller).set(sessionId, ((CheshireHTMLController)controller).getSessionStorage().toJSONString(), expires);
 		}
 	}
 
@@ -203,7 +176,7 @@ public class SessionFilter implements StrestControllerFilter {
 	 * @see com.trendrr.strest.server.StrestControllerFilter#error(com.trendrr.strest.server.StrestController, org.jboss.netty.handler.codec.http.HttpResponse, java.lang.Exception)
 	 */
 	@Override
-	public void error(StrestController controller, HttpResponse response,
+	public void error(CheshireController controller, HttpResponse response,
 			Exception exception) {
 	}
 }

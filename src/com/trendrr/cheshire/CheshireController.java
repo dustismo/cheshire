@@ -108,13 +108,6 @@ public abstract class CheshireController extends com.trendrr.strest.server.Stres
 		return null;
 	}
 	
-	public boolean enableSessions() {
-		if (this.isAnnotationPresent()) {
-			return this.getAnnotationVal(Boolean.class, "enableSessions");
-		}
-		return false;
-	}
-	
 	@Override
 	protected abstract Class getAnnotationClass();
 }

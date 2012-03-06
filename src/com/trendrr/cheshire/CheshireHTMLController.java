@@ -32,6 +32,15 @@ public class CheshireHTMLController extends CheshireController {
 
 	protected static Log log = LogFactory.getLog(CheshireHTMLController.class);
 	
+	protected DynMap sessionStorage = new DynMap();
+	
+	/**
+	 * gets session storage.  these values are automatically serialized into the session, if sessions filter is active and enableSessions = true for the controller.
+	 */
+	public DynMap getSessionStorage() {
+		return sessionStorage;
+	}
+
 	public static void main(String ...strings) {
 		{
 			DynMap params = new DynMap();
@@ -88,6 +97,13 @@ public class CheshireHTMLController extends CheshireController {
 		}
 	}
 
+	public boolean enableSessions() {
+		if (this.isAnnotationPresent()) {
+			return this.getAnnotationVal(Boolean.class, "enableSessions");
+		}
+		return false;
+	}
+	
 	/* (non-Javadoc)
 	 * @see com.trendrr.cheshire.CheshireController#getAnnotationClass()
 	 */
@@ -96,5 +112,16 @@ public class CheshireHTMLController extends CheshireController {
 		return CheshireHTML.class;
 	}
 	
+	/**
+	 * Issues a redirect to the user.  if this is called before the regular controller action is called, then the controller action will be skipped.
+	 * @param url
+	 */
+	public void redirect(String url) {
+		this.getResponseAsBuilder().redirect(url);
+		this.setSkipExecution(true);
+	}
 	
+	public String getNamespace() {
+		return "html";
+	}
 }

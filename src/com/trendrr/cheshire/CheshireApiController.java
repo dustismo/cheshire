@@ -156,4 +156,8 @@ public class CheshireApiController extends CheshireController {
 	protected Class getAnnotationClass() {
 		return CheshireApi.class;
 	}
+	
+	public String getNamespace() {
+		return "api";
+	}
 }

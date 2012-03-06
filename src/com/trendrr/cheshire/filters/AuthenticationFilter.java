@@ -99,7 +99,7 @@ public class AuthenticationFilter implements StrestControllerFilter  {
 				//now do the real checking.
 				//run through all the authentication providers until we find a match.
 				
-				for (AuthenticationProvider ap: this.getAuthProv(controller.getFilterNamespace(), controller)) {
+				for (AuthenticationProvider ap: this.getAuthProv(controller.getControllerNamespace(), controller)) {
 					if (token != null) {
 						continue;
 					}
