@@ -22,7 +22,9 @@ html:
    authentication:
       - com.trendrr.v4.authentication.SessionAuthentication
    pages:
+      # login page for redirecting when needed
       login: /login
+      # directory containing the error pages (404.html, 500.html, ect)
       error_dir: /errors 
 
 api:
@@ -51,11 +53,15 @@ default:
 # The default TrendrrCache implementation.  this will be used for 
 # Sessions, caching, and execution reports if no specific 
 # implementation is found for those.
-default_trendrr_cache:
-   classname : com.trendrr.shared.caching.TrendrrXMemcached
-   # Memcache host string (can be multiple urls comma delim here)
-   host : localhost:11111
- 
+caches:
+   default:
+      classname : com.trendrr.shared.caching.TrendrrXMemcached
+      # Memcache host string (can be multiple urls comma delim here)
+      host : localhost:11111
+   sessions:
+      classname : com.trendrr.cheshire.caching.InMemoryTrendrrCache
+      max_size : 1000
+      expire_seconds : 300  
   
 access_log:
    filename : logs/access.log
