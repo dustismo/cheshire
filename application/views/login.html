@@ -1,3 +1,11 @@
 {{<template}}
-{{$body}} Login Please {{/body}}
+{{$body}} 
+
+<form class="well form-inline" method="POST">
+  <input name="username" type="text" class="input-medium" placeholder="Username">
+  <input name="password" type="password" class="input-small" placeholder="Password">
+  <button type="submit" class="btn">Login</button>
+</form>
+
+{{/body}}
 {{/template}}

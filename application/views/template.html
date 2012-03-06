@@ -40,12 +40,12 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </a>
-          <a class="brand" href="#">CHESHIRE PROJECT</a>
+          <a class="brand" href="#">My CHESHIRE PROJECT</a>
           <div class="nav-collapse">
             <ul class="nav">
               <li class="active"><a href="#">Home</a></li>
-              <li><a href="#about">About</a></li>
-              <li><a href="#contact">Contact</a></li>
+              <li><a href="#about">api playground</a></li>
+              <li><a href="/login">login</a></li>
             </ul>
           </div><!--/.nav-collapse -->
         </div>
@@ -53,7 +53,19 @@
     </div>
 
     <div class="container">
-		{{$body}}{{/body}}
+    	<section id="body" style="min-height:200px;">
+			{{$body}}{{/body}}
+		</section>
+	<!-- Footer
+      ================================================== -->
+      <footer class="footer">
+      	{{$footer}}
+        <p class="pull-right"><a href="#">Back to top</a></p>
+        <p>Built with <a href="https://github.com/dustismo/cheshire" target="_blank">Cheshire</a> and <a href="https://github.com/trendrr/strest-server" target="_blank">STREST</a>.</p>
+        <p>Code licensed under the <a href="#" target="_blank">MIT License</a>. Documentation licensed under <a href="http://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a>.</p>
+        <p>Layout by <a href="http://twitter.github.com/bootstrap/index.html">Bootstrap.js</a>, licensed under <a href="http://www.apache.org/licenses/LICENSE-2.0" target="_blank">Apache License v2.0</a>.</p>
+      	{{/footer}}
+      </footer>	
     </div> <!-- /container -->
 
     <!-- Le javascript
