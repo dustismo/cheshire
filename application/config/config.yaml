@@ -18,14 +18,21 @@ html:
       - com.trendrr.cheshire.filters.AccessLogFilter
       - com.trendrr.cheshire.filters.SessionFilter
       - com.trendrr.cheshire.filters.AuthenticationFilter
+      - com.trendrr.cheshire.filters.AccessFilter
    authentication:
       - com.trendrr.v4.authentication.SessionAuthentication
+   pages:
+      # login page for redirecting when needed
+      login: /login
+      # directory containing the error pages (404.html, 500.html, ect)
+      error_dir: /errors 
 
 api:
    filters:
       - com.trendrr.cheshire.filters.AccessLogFilter
       - com.trendrr.cheshire.filters.JsonpFilter
       - com.trendrr.cheshire.filters.AuthenticationFilter
+      - com.trendrr.cheshire.filters.AccessFilter
    authentication:
       - com.trendrr.v4.authentication.AuthAuthentication
 
