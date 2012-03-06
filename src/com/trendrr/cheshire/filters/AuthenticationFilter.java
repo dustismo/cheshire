@@ -117,6 +117,7 @@ public class AuthenticationFilter implements StrestControllerFilter  {
 				if (token.isSaveInConnection())
 					controller.getConnectionStorage().put("auth_token", token);
 			}
+			log.info("Authenticated!" + token.toDynMap().toJSONString());
 		} catch (StrestException e) {
 			throw e;
 		} catch (Exception e) {
@@ -129,7 +130,7 @@ public class AuthenticationFilter implements StrestControllerFilter  {
 	 * looks in the session and connection for the auth token.
 	 * @return
 	 */
-	public AuthToken findAuthToken(StrestController controller) throws Exception {
+	public static AuthToken findAuthToken(StrestController controller) throws Exception {
 		AuthToken token = null;
 		
 		//first check txn storage.

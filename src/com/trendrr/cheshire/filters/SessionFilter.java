@@ -20,6 +20,7 @@ import org.jboss.netty.util.internal.ConcurrentHashMap;
 
 import com.trendrr.cheshire.CheshireController;
 import com.trendrr.cheshire.CheshireHTMLController;
+import com.trendrr.cheshire.authentication.AuthToken;
 import com.trendrr.cheshire.caching.TrendrrCaches;
 import com.trendrr.oss.DynMap;
 import com.trendrr.oss.IsoDateUtil;
@@ -107,7 +108,7 @@ public class SessionFilter extends CheshireFilter {
         
         if (sessionId != null) {
         	//load the session.
-        	Map<String,Object> vals = DynMap.instance(this.getSessionPersistence(controller).get(sessionId));
+        	DynMap vals = DynMap.instance(this.getSessionPersistence(controller).get(sessionId));
         	
         	Date expires = TypeCast.cast(Date.class, "expires");
         	if (expires != null && expires.before(new Date())) {
@@ -116,6 +117,15 @@ public class SessionFilter extends CheshireFilter {
         	}
         	if (vals != null) {
         		((CheshireHTMLController)controller).getSessionStorage().putAll(vals);
+        		DynMap authtmp = vals.getMap("auth_token");
+        		if (authtmp != null) {
+        			try {
+						AuthToken token = AuthToken.instance(vals.getString("auth_token_class"), authtmp);
+						controller.getConnectionStorage().put("auth_token", token);
+					} catch (Exception e) {
+						log.error("Caught", e);
+					}
+        		}
         	}
         	controller.getConnectionStorage().put(SESSION, sessionId);
         }

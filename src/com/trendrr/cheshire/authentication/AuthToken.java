@@ -11,20 +11,25 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.trendrr.oss.DynMap;
+import com.trendrr.oss.Reflection;
+import com.trendrr.oss.cache.TrendrrCacheItem;
 
 
 /**
  * 
  * A suitable implementation for most people.
  * 
+ * Implementors are free to override this class to change anything, just be sure to 
+ * have a default constructor and handle fromDynMap and toDynMap methods as these are used for 
+ * serializing in the cache and session.
  * 
  * @author Dustin Norlander
  * @created Jan 27, 2012
  * 
  */
-public abstract class AuthToken{
+public class AuthToken{
 
-	protected Log log = LogFactory.getLog(AuthToken.class);
+	protected static Log log = LogFactory.getLog(AuthToken.class);
 
 	protected Set<String> routesAllowed = new HashSet<String>();
 	protected Set<String> routesDisallowed = new HashSet<String>();
@@ -32,6 +37,19 @@ public abstract class AuthToken{
 	protected Set<String> userAccessRoles = new HashSet<String>();
 	protected Integer rateLimit = null;
 	protected boolean saveInConnection = true;
+	
+	
+	/**
+	 * loads a new auth token based on the classname.
+	 * @param cls
+	 * @param content
+	 * @return
+	 */
+	public static AuthToken instance(String cls, DynMap content) throws Exception{
+		AuthToken tok = Reflection.defaultInstance(AuthToken.class, cls);
+		tok.fromDynMap(content);
+		return tok;
+	}
 	
 	/**
 	 * Should we save the auth token in the connection?  This is only applicable to STREST connections, and

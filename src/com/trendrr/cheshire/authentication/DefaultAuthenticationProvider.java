@@ -46,8 +46,7 @@ public abstract class DefaultAuthenticationProvider implements AuthenticationPro
 			TrendrrCacheItem item = TrendrrCacheItem.deserialize((byte[])obj);
 			String cls = item.getMetadata().getString("auth_token_class");
 			DynMap content = DynMap.instance(new String(item.getContentBytes(), "utf8"));
-			AuthToken tok = Reflection.defaultInstance(AuthToken.class, cls);
-			tok.fromDynMap(content);
+			AuthToken tok = AuthToken.instance(cls, content);
 			log.info("got auth from cache: " + content.toJSONString());
 			return tok;
 		} catch (Exception e) {
