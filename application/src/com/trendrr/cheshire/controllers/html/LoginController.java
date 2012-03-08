@@ -32,14 +32,14 @@ public class LoginController extends CheshireHTMLController {
 		AuthToken token = null;
 		
 		if (username != null && password != null) {
+			log.warn("Dummy login controller gave you ADMIN ACCESS!");
 			//TODO: this is just a dummy token..
 			token = new AuthToken();
 			token.getUserAccessRoles().add("administrator");
 			token.setUserId(username);
 		}
-		
+		this.setAuthToken(token);
 		//logged in!
-		this.getSessionStorage().put("auth_token", token);
 		this.redirect("/");
 	}
 	
