@@ -177,6 +177,11 @@ public class SessionFilter extends CheshireFilter {
 		//save the session.
 		Date expires = new Date(new Date().getTime()+(1000*this.maxAge));
 		((CheshireHTMLController)controller).getSessionStorage().put("expires", IsoDateUtil.getIsoDate(expires));
+		if (controller.getAuthToken() != null) {
+			//save the auth token.
+			((CheshireHTMLController)controller).getSessionStorage().put("auth_token", controller.getAuthToken().toDynMap());
+			((CheshireHTMLController)controller).getSessionStorage().put("auth_token_class", controller.getAuthToken().getClass().getCanonicalName());
+		}
 		if (sessionId != null) {
 			this.getSessionPersistence(controller).set(sessionId, ((CheshireHTMLController)controller).getSessionStorage().toJSONString(), expires);
 		}

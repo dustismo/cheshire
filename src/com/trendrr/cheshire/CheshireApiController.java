@@ -157,7 +157,8 @@ public class CheshireApiController extends CheshireController {
 		return CheshireApi.class;
 	}
 	
-	public String getNamespace() {
+	@Override
+	public String getControllerNamespace() {
 		return "api";
 	}
 }

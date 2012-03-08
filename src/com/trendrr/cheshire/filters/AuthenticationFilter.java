@@ -12,6 +12,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 
+import com.trendrr.cheshire.CheshireController;
 import com.trendrr.cheshire.authentication.AuthToken;
 import com.trendrr.cheshire.authentication.AuthToken;
 import com.trendrr.cheshire.authentication.AuthenticationProvider;
@@ -33,7 +34,7 @@ import com.trendrr.strest.server.StrestControllerFilter;
  * @created Jan 27, 2012
  * 
  */
-public class AuthenticationFilter implements StrestControllerFilter  {
+public class AuthenticationFilter extends CheshireFilter  {
 
 	protected Log log = LogFactory.getLog(AuthenticationFilter.class);
 	
@@ -89,7 +90,7 @@ public class AuthenticationFilter implements StrestControllerFilter  {
 	 * @see com.trendrr.strest.server.StrestControllerFilter#before(com.trendrr.strest.server.StrestController)
 	 */
 	@Override
-	public void before(StrestController controller) throws StrestException {
+	public void before(CheshireController controller) throws StrestException {
 		
 		try {
 			AuthToken token = this.findAuthToken(controller);
@@ -111,13 +112,11 @@ public class AuthenticationFilter implements StrestControllerFilter  {
 			}
 			
 			if (token != null) {
-				//set the AuthToken in the controller...
-				controller.getTxnStorage().put("auth_token", token);
-				//store in the session and the connection..
-				if (token.isSaveInConnection())
-					controller.getConnectionStorage().put("auth_token", token);
+				controller.setAuthToken(token);
+				log.info("Authenticated!" + token.toDynMap().toJSONString());
 			}
-			log.info("Authenticated!" + token.toDynMap().toJSONString());
+			
+			
 		} catch (StrestException e) {
 			throw e;
 		} catch (Exception e) {
@@ -150,7 +149,7 @@ public class AuthenticationFilter implements StrestControllerFilter  {
 	 * @see com.trendrr.strest.server.StrestControllerFilter#after(com.trendrr.strest.server.StrestController)
 	 */
 	@Override
-	public void after(StrestController controller) throws StrestException {
+	public void after(CheshireController controller) throws StrestException {
 		// TODO Auto-generated method stub
 		
 	}
@@ -159,7 +158,7 @@ public class AuthenticationFilter implements StrestControllerFilter  {
 	 * @see com.trendrr.strest.server.StrestControllerFilter#error(com.trendrr.strest.server.StrestController, org.jboss.netty.handler.codec.http.HttpResponse, java.lang.Exception)
 	 */
 	@Override
-	public void error(StrestController controller, HttpResponse response,
+	public void error(CheshireController controller, HttpResponse response,
 			Exception exception) {
 		// TODO Auto-generated method stub
 		

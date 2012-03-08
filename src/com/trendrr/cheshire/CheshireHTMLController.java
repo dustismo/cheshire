@@ -88,7 +88,7 @@ public class CheshireHTMLController extends CheshireController {
 //			
 //			new MustacheBuilder().parse(t, template).execute(str, new Scope(templateParams, new Scope(this)));
 			
-			System.out.println(str);
+//			System.out.println(str);
 			this.setResponseUTF8(ContentTypes.HTML, str.toString());
 		} catch (MustacheException e) {
 			log.error("Caught", e);
@@ -101,7 +101,7 @@ public class CheshireHTMLController extends CheshireController {
 		if (this.isAnnotationPresent()) {
 			return this.getAnnotationVal(Boolean.class, "enableSessions");
 		}
-		return false;
+		return true;
 	}
 	
 	/* (non-Javadoc)
@@ -121,7 +121,8 @@ public class CheshireHTMLController extends CheshireController {
 		this.setSkipExecution(true);
 	}
 	
-	public String getNamespace() {
+	@Override
+	public String getControllerNamespace() {
 		return "html";
 	}
 }

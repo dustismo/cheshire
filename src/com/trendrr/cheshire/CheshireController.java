@@ -38,6 +38,17 @@ public abstract class CheshireController extends com.trendrr.strest.server.Stres
 	}
 
 	/**
+	 * sets the authtoken in the controller.
+	 * @param token
+	 */
+	public void setAuthToken(AuthToken token) {
+		//set the AuthToken in the controller...
+		this.getTxnStorage().put("auth_token", token);
+		//store in the session and the connection..
+		if (token.isSaveInConnection())
+			this.getConnectionStorage().put("auth_token", token);
+	}
+	/**
 	 * if cacheTimeout is greater then 0, then this key is
 	 * used to cache the return result.  Override for custom implementation.
 	 * 

@@ -24,7 +24,7 @@ public class TrendrrCaches extends TrendrrCacheStore {
 	protected static Log log = LogFactory.getLog(TrendrrCaches.class);
 	
 	public static TrendrrCache getDefaultCache(final StrestController controller) {
-		return getCache("default_trendrr_cache", controller);
+		return getCache("default", controller);
 	}
 	
 	public static TrendrrCache getCacheOrDefault(final String configname, final StrestController controller) {
@@ -50,7 +50,7 @@ public class TrendrrCaches extends TrendrrCacheStore {
 			cache = TrendrrCacheStore.instance().getCache(configname, new Initializer<TrendrrCache>() {
 				@Override
 				public TrendrrCache init() {
-					DynMap config = controller.getServerConfig().getMap(configname, new DynMap());
+					DynMap config = controller.getServerConfig().getMap("caches." + configname, new DynMap());
 					String cls = config.getString("classname");
 					log.warn("Got cls: " +cls);
 					log.warn(config.toJSONString());

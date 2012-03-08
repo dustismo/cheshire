@@ -5,18 +5,25 @@ package com.trendrr.cheshire.caching;
 
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.trendrr.oss.DynMap;
 import com.trendrr.oss.cache.TrendrrCache;
 
 
 /**
- * TODO: this is not an actual implementation.  just a placeholder.  Implement via google guava lib.
+ * Implemented via the google guava cache.  
+ * 
+ * This is an imperfect implementation, expires is ignored on a per key basis and is only configurable per cache.
+ * 
  * 
  * 
  * @author Dustin Norlander
@@ -24,7 +31,8 @@ import com.trendrr.oss.cache.TrendrrCache;
  * 
  */
 public class InMemoryTrendrrCache extends TrendrrCache {
-
+	
+	Cache<String, Object> cache = null;
 	/**
 	 * @param config
 	 */
@@ -32,21 +40,27 @@ public class InMemoryTrendrrCache extends TrendrrCache {
 		super(config);
 	}
 
-	protected Log log = LogFactory.getLog(InMemoryTrendrrCache.class);
+	protected static Log log = LogFactory.getLog(InMemoryTrendrrCache.class);
 
 	/* (non-Javadoc)
 	 * @see com.trendrr.oss.cache.TrendrrCache#_init(com.trendrr.oss.DynMap)
 	 */
 	@Override
 	protected void _init(DynMap config) {
-		log.warn("Initing cache");
+		log.warn("Initing in memory cache");
+		cache = CacheBuilder.newBuilder()
+			       .maximumSize(config.getInteger("max_size", 1000))
+			       .expireAfterWrite(config.getInteger("expire_seconds", 60), TimeUnit.SECONDS)
+			       .build();
 	}
 
 	/* (non-Javadoc)
 	 * @see com.trendrr.oss.cache.TrendrrCache#_set(java.lang.String, java.lang.Object, java.util.Date)
 	 */
 	@Override
-	protected void _set(String key, Object obj, Date expires) {
+	protected synchronized void _set(String key, Object obj, Date expires) {
+		this.cache.put(key, obj);
+		
 		log.warn("saving key: " +key + " -- uhh, just kidding :)");
 	}
 
@@ -54,16 +68,15 @@ public class InMemoryTrendrrCache extends TrendrrCache {
 	 * @see com.trendrr.oss.cache.TrendrrCache#_get(java.lang.String)
 	 */
 	@Override
-	protected Object _get(String key) {
-		log.warn("getting key: " +key + " -- uhh, just kidding :)");
-		return null;
+	protected synchronized Object _get(String key) {
+		return this.cache.getIfPresent(key);
 	}
 
 	/* (non-Javadoc)
 	 * @see com.trendrr.oss.cache.TrendrrCache#_inc(java.lang.String, java.lang.Number)
 	 */
 	@Override
-	protected long _inc(String key, int value, Date expire) {
+	protected synchronized long _inc(String key, int value, Date expire) {
 		log.warn("inc key: " +key + " -- uhh, just kidding :)");
 		return 0l;
 	}
@@ -72,7 +85,7 @@ public class InMemoryTrendrrCache extends TrendrrCache {
 	 * @see com.trendrr.oss.cache.TrendrrCache#_addToSet(java.util.Collection)
 	 */
 	@Override
-	protected Set<String> _addToSet(String key, Collection<String> str, Date expire) {
+	protected synchronized Set<String> _addToSet(String key, Collection<String> str, Date expire) {
 		log.warn("saving set: " + key + " -- uhh, just kidding :)");
 		return null;
 	}
@@ -81,7 +94,7 @@ public class InMemoryTrendrrCache extends TrendrrCache {
 	 * @see com.trendrr.oss.cache.TrendrrCache#_removeFromSet(java.util.Collection)
 	 */
 	@Override
-	protected Set<String> _removeFromSet(String key, Collection<String> str) {
+	protected synchronized Set<String> _removeFromSet(String key, Collection<String> str) {
 		log.warn("remove from set: " + key + " -- uhh, just kidding :)");
 		return null;
 	}
@@ -90,9 +103,11 @@ public class InMemoryTrendrrCache extends TrendrrCache {
 	 * @see com.trendrr.oss.cache.TrendrrCache#_setIfAbsent(java.lang.String, java.lang.Object, java.util.Date)
 	 */
 	@Override
-	protected boolean _setIfAbsent(String key, Object value, Date expires) {
-		log.warn("setting if absent: " + key + " -- uhh, just kidding :)");
-		
+	protected synchronized boolean _setIfAbsent(String key, Object value, Date expires) {
+		if (this.cache.getIfPresent(key) == null) {
+			this._set(key, value, expires);
+			return true;
+		}
 		return false;
 	}
 
@@ -100,8 +115,8 @@ public class InMemoryTrendrrCache extends TrendrrCache {
 	 * @see com.trendrr.oss.cache.TrendrrCache#_del(java.lang.String)
 	 */
 	@Override
-	protected void _del(String key) {
-		log.warn("deleting: " + key + " -- uhh, just kidding :)");
+	protected synchronized void _del(String key) {
+		this.cache.invalidate(key);
 	}
 
 	/* (non-Javadoc)
@@ -109,8 +124,14 @@ public class InMemoryTrendrrCache extends TrendrrCache {
 	 */
 	@Override
 	protected Map<String, Object> _getMulti(Set<String> keys) {
-		log.warn("getting multi: " + keys + " -- uhh, just kidding :)");
-		return null;
+		Map<String,Object> vals = new HashMap<String, Object>();
+		for (String key : keys) {
+			Object v = this._get(key);
+			if (v != null) {
+				vals.put(key, v);
+			}
+		}
+		return vals;
 	}
 
 	/* (non-Javadoc)
