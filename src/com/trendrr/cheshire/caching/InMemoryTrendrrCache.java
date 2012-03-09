@@ -138,7 +138,7 @@ public class InMemoryTrendrrCache extends TrendrrCache {
 	 * @see com.trendrr.oss.cache.TrendrrCache#_getSet(java.lang.String)
 	 */
 	@Override
-	protected Set<String> _getSet(String key) {
+	protected synchronized Set<String> _getSet(String key) {
 		// TODO Auto-generated method stub
 		return null;
 	}

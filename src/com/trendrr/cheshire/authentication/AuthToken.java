@@ -9,7 +9,10 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jboss.netty.handler.codec.http.HttpMethod;
 
+import com.trendrr.cheshire.CheshireController;
+import com.trendrr.cheshire.ratelimiting.RateLimit;
 import com.trendrr.oss.DynMap;
 import com.trendrr.oss.Reflection;
 import com.trendrr.oss.cache.TrendrrCacheItem;
@@ -79,7 +82,7 @@ public class AuthToken{
 			) {
 		this.routesAllowed.addAll(routesAllowed);
 		this.routesDisallowed.addAll(routesDisallowed);
-		this.setRateLimit(rateLimit);
+		this.setDefaultRateLimit(rateLimit);
 		this.userAccessRoles.addAll(userAccessRoles);
 		this.setUserId(userId);
 		this.setSaveInConnection(saveInConnection);
@@ -98,7 +101,7 @@ public class AuthToken{
 		mp.put("routes_allowed", this.getRoutesAllowed());
 		mp.put("routes_disallowed", this.getRoutesDisallowed());
 		mp.put("user_access_roles", this.getUserAccessRoles());
-		mp.put("rate_limit", this.getRateLimit());
+		mp.put("rate_limit", this.getDefaultRateLimit());
 		mp.put("save_in_connection", this.isSaveInConnection());
 		return mp;
 	}
@@ -113,7 +116,7 @@ public class AuthToken{
 		this.userAccessRoles.addAll(mp.getListOrEmpty(String.class, "user_access_roles"));
 		this.setUserId(mp.getString("user_id"));
 		this.setSaveInConnection(mp.getBoolean("save_in_connection", true));
-		this.setRateLimit(mp.getInteger("rate_limit"));
+		this.setDefaultRateLimit(mp.getInteger("rate_limit"));
 	}
 
 	
@@ -125,11 +128,30 @@ public class AuthToken{
 		this.userAccessRoles = userAccessRoles;
 	}
 
-	public Integer getRateLimit() {
+	/**
+	 * returns a rate limit based on the specified controller.  return null to not rate limit
+	 * @param controller
+	 * @return
+	 */
+	public RateLimit getRateLimit(CheshireController controller) {
+		if (this.getDefaultRateLimit() == null)
+			return null;
+		
+		if (controller.getRequest().getMethod() == HttpMethod.GET) {
+			return new RateLimit(this.userId, "ALL_GETS", this.getDefaultRateLimit());
+		}
+		return null;
+	}
+	
+	/**
+	 * the default rate limit for any get request where enableRatelimiting = true
+	 * @return
+	 */
+	public Integer getDefaultRateLimit() {
 		return rateLimit;
 	}
 
-	public void setRateLimit(Integer rateLimit) {
+	public void setDefaultRateLimit(Integer rateLimit) {
 		this.rateLimit = rateLimit;
 	}
 

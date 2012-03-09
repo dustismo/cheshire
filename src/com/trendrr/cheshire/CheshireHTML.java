@@ -37,4 +37,6 @@ public @interface CheshireHTML {
 	 */
 	int cacheTimeoutSeconds() default 0;
 	boolean enableSessions() default true;
+	boolean enableRateLimiting() default true;
+	
 }
