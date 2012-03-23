@@ -2,8 +2,8 @@
  * 
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.trendrr.cheshire.CheshireGlobals;
 import com.trendrr.oss.DynMap;
@@ -21,7 +21,7 @@ import com.trendrr.strest.doc.StrestDocParser;
  */
 public class DocumentationGenerator extends StrestDocParser {
 
-	protected Log log = LogFactory.getLog(DocumentationGenerator.class);
+	protected static Logger log = LoggerFactory.getLogger(DocumentationGenerator.class);
 	
 	public static void main(String ...args) {
 		CheshireGlobals.baseDir = "application/";

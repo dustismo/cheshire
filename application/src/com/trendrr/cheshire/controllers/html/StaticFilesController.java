@@ -3,8 +3,8 @@
  */
 package com.trendrr.cheshire.controllers.html;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.trendrr.cheshire.CheshireHTML;
 import com.trendrr.cheshire.CheshireHTMLController;
@@ -25,7 +25,7 @@ import com.trendrr.strest.StrestHttpException;
 )
 public class StaticFilesController extends CheshireHTMLController {
 
-	protected Log log = LogFactory.getLog(StaticFilesController.class);
+	protected static Logger log = LoggerFactory.getLogger(StaticFilesController.class);
 	public static String baseDir = CheshireGlobals.baseDir + "static/";
 	public static long cacheTimeout = 10*1000l;
 	protected static FileCache cache = new FileCache();

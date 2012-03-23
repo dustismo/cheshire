@@ -6,8 +6,8 @@ package com.trendrr.cheshire.controllers.html;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.trendrr.cheshire.CheshireHTML;
 import com.trendrr.oss.DynMap;
@@ -26,7 +26,7 @@ import com.trendrr.oss.FileHelper;
 )
 public class DocsIndex extends Docs {
 
-	protected Log log = LogFactory.getLog(DocsIndex.class);
+	protected static Logger log = LoggerFactory.getLogger(DocsIndex.class);
 	
 	public void handleGET(DynMap params) throws Exception {
 		String filename = baseDir + "strestdoc_index.json";

@@ -3,8 +3,8 @@
  */
 package com.trendrr.cheshire.controllers.html;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.trendrr.cheshire.CheshireHTML;
 import com.trendrr.cheshire.CheshireHTMLController;
@@ -20,7 +20,7 @@ import com.trendrr.oss.DynMap;
 )
 public class LoginController extends CheshireHTMLController {
 
-	protected Log log = LogFactory.getLog(LoginController.class);
+	protected static Logger log = LoggerFactory.getLogger(LoginController.class);
 	
 	public void handleGET(DynMap params) throws Exception {
 		this.render("/login", params);

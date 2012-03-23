@@ -3,8 +3,8 @@
  */
 package com.trendrr.cheshire.controllers.html;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.trendrr.cheshire.CheshireHTML;
 import com.trendrr.cheshire.CheshireHTMLController;
@@ -17,7 +17,7 @@ import com.trendrr.oss.DynMap;
 )
 public class IndexController extends CheshireHTMLController {
 
-	protected Log log = LogFactory.getLog(IndexController.class);
+	protected static Logger log = LoggerFactory.getLogger(IndexController.class);
 	
 	@Override
 	public void handleGET(DynMap params) throws Exception {

@@ -6,8 +6,8 @@ package com.trendrr.cheshire.controllers.html;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.trendrr.cheshire.CheshireHTML;
 import com.trendrr.cheshire.CheshireHTMLController;
@@ -33,7 +33,7 @@ import com.trendrr.strest.server.controllers.StaticFileController;
 )
 public class Docs extends CheshireHTMLController {
 
-	protected static Log log = LogFactory.getLog(Docs.class);
+	protected static Logger log = LoggerFactory.getLogger(Docs.class);
 	
 	
 	public static String baseDir = CheshireGlobals.baseDir + "strestdoc/";

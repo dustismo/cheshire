@@ -8,8 +8,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.trendrr.cheshire.CheshireApi;
 import com.trendrr.cheshire.CheshireApiController;
@@ -34,7 +34,7 @@ import com.trendrr.oss.cache.TrendrrCache;
 )
 public class RateLimitStats extends CheshireApiController {
 
-	protected Log log = LogFactory.getLog(RateLimitStats.class);
+	protected static Logger log = LoggerFactory.getLogger(RateLimitStats.class);
 	
 	public void handleGET(DynMap params) throws Exception {
 		TrendrrCache cache = TrendrrCaches.getCacheOrDefault("rate_limits", this);
