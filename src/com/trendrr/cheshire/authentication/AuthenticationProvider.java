@@ -3,8 +3,8 @@
  */
 package com.trendrr.cheshire.authentication;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.trendrr.strest.StrestException;
 import com.trendrr.strest.server.StrestController;

@@ -10,8 +10,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -40,7 +40,7 @@ public class InMemoryTrendrrCache extends TrendrrCache {
 		super(config);
 	}
 
-	protected static Log log = LogFactory.getLog(InMemoryTrendrrCache.class);
+	protected static Logger log = LoggerFactory.getLogger(InMemoryTrendrrCache.class);
 
 	/* (non-Javadoc)
 	 * @see com.trendrr.oss.cache.TrendrrCache#_init(com.trendrr.oss.DynMap)

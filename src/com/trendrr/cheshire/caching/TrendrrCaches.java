@@ -3,8 +3,8 @@
  */
 package com.trendrr.cheshire.caching;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.trendrr.oss.DynMap;
 import com.trendrr.oss.Reflection;
@@ -21,7 +21,7 @@ import com.trendrr.strest.server.StrestController;
  */
 public class TrendrrCaches extends TrendrrCacheStore {
 
-	protected static Log log = LogFactory.getLog(TrendrrCaches.class);
+	protected static Logger log = LoggerFactory.getLogger(TrendrrCaches.class);
 	
 	public static TrendrrCache getDefaultCache(final StrestController controller) {
 		return getCache("default", controller);

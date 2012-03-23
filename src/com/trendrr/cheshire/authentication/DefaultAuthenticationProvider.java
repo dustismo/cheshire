@@ -5,8 +5,8 @@ package com.trendrr.cheshire.authentication;
 
 import java.util.Date;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.trendrr.cheshire.caching.TrendrrCaches;
 import com.trendrr.oss.DynMap;
@@ -24,7 +24,7 @@ import com.trendrr.strest.server.StrestController;
  */
 public abstract class DefaultAuthenticationProvider implements AuthenticationProvider {
 
-	protected Log log = LogFactory.getLog(DefaultAuthenticationProvider.class);
+	protected static Logger log = LoggerFactory.getLogger(DefaultAuthenticationProvider.class);
 
 	
 	public TrendrrCache getCache(StrestController controller) {

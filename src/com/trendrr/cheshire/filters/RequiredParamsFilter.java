@@ -3,8 +3,8 @@
  */
 package com.trendrr.cheshire.filters;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 
 import com.trendrr.strest.StrestException;
@@ -20,7 +20,7 @@ import com.trendrr.strest.server.StrestControllerFilter;
  */
 public class RequiredParamsFilter implements StrestControllerFilter {
 
-	protected Log log = LogFactory.getLog(RequiredParamsFilter.class);
+	protected static Logger log = LoggerFactory.getLogger(RequiredParamsFilter.class);
 
 	/* (non-Javadoc)
 	 * @see com.trendrr.strest.server.StrestControllerFilter#before(com.trendrr.strest.server.StrestController)

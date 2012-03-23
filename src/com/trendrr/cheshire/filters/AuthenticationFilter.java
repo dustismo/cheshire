@@ -8,8 +8,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 
 import com.trendrr.cheshire.CheshireController;
@@ -36,7 +36,7 @@ import com.trendrr.strest.server.StrestControllerFilter;
  */
 public class AuthenticationFilter extends CheshireFilter  {
 
-	protected Log log = LogFactory.getLog(AuthenticationFilter.class);
+	protected static Logger log = LoggerFactory.getLogger(AuthenticationFilter.class);
 	
 	public static void main(String ...strings) {
 		DynMap test = new DynMap();

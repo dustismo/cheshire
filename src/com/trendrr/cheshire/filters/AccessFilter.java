@@ -7,8 +7,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.Set;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 
 import com.trendrr.cheshire.CheshireController;
@@ -25,7 +25,7 @@ import com.trendrr.strest.StrestHttpException;
  */
 public class AccessFilter extends CheshireFilter {
 
-	protected Log log = LogFactory.getLog(AccessFilter.class);
+	protected static Logger log = LoggerFactory.getLogger(AccessFilter.class);
 
 
 	/* (non-Javadoc)

@@ -5,8 +5,8 @@ package com.trendrr.cheshire.filters;
 
 import java.util.Date;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 
@@ -29,7 +29,7 @@ import com.trendrr.strest.StrestException;
  */
 public class CacheFilter extends CheshireFilter {
 
-	protected Log log = LogFactory.getLog(CacheFilter.class);
+	protected static Logger log = LoggerFactory.getLogger(CacheFilter.class);
 
 	protected static boolean disabled = false;
 	protected int errorTimeoutSeconds = 30;

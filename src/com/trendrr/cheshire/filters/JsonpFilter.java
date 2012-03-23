@@ -6,8 +6,8 @@ package com.trendrr.cheshire.filters;
 import java.io.UnsupportedEncodingException;
 import java.util.Collection;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 
@@ -33,7 +33,7 @@ import com.trendrr.strest.server.StrestControllerFilter;
  */
 public class JsonpFilter implements StrestControllerFilter {
 
-	protected Log log = LogFactory.getLog(JsonpFilter.class);
+	protected static Logger log = LoggerFactory.getLogger(JsonpFilter.class);
 	
 	private static Collection<String> params = ListHelper.toTypedList(String.class, "jsonp,callback", ",");
 	

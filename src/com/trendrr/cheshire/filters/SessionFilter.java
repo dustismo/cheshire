@@ -8,8 +8,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.jboss.netty.handler.codec.http.Cookie;
 import org.jboss.netty.handler.codec.http.CookieDecoder;
 import org.jboss.netty.handler.codec.http.CookieEncoder;
@@ -45,7 +45,7 @@ import com.trendrr.strest.server.StrestRouter;
  */
 public class SessionFilter extends CheshireFilter {
 
-	protected Log log = LogFactory.getLog(SessionFilter.class);
+	protected static Logger log = LoggerFactory.getLogger(SessionFilter.class);
 	protected static String SESSION = "sessionId";
 	protected int maxAge = 60*30; //30 minutes
 	

@@ -6,8 +6,8 @@ package com.trendrr.cheshire.filters;
 import java.net.SocketAddress;
 import java.util.Date;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 
 import com.trendrr.oss.DynMap;
@@ -27,7 +27,7 @@ import com.trendrr.strest.server.StrestControllerFilter;
  */
 public class AccessLogFilter implements StrestControllerFilter {
 
-	protected Log log = LogFactory.getLog(AccessLogFilter.class);
+	protected static Logger log = LoggerFactory.getLogger(AccessLogFilter.class);
 
 	protected RollingFileAppender appender = null;
 	protected LazyInit appenderInit = new LazyInit();

@@ -7,8 +7,8 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 
 import com.trendrr.cheshire.CheshireController;
@@ -32,7 +32,7 @@ import com.trendrr.oss.cache.TrendrrCacheItem;
  */
 public class AuthToken{
 
-	protected static Log log = LogFactory.getLog(AuthToken.class);
+	protected static Logger log = LoggerFactory.getLogger(AuthToken.class);
 
 	protected Set<String> routesAllowed = new HashSet<String>();
 	protected Set<String> routesDisallowed = new HashSet<String>();

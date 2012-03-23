@@ -5,8 +5,8 @@ package com.trendrr.cheshire.filters;
 
 import java.io.UnsupportedEncodingException;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 
 import com.trendrr.cheshire.CheshireApiController;
@@ -30,7 +30,7 @@ import com.trendrr.strest.server.ResponseBuilder;
  */
 public class ReturnTypeFilter extends CheshireFilter {
 
-	protected Log log = LogFactory.getLog(ReturnTypeFilter.class);
+	protected static Logger log = LoggerFactory.getLogger(ReturnTypeFilter.class);
 
 	/* (non-Javadoc)
 	 * @see com.trendrr.strest.server.StrestControllerFilter#before(com.trendrr.strest.server.StrestController)

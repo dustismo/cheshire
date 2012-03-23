@@ -8,8 +8,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -30,7 +30,7 @@ import com.trendrr.oss.cache.TrendrrCache;
  */
 public class RateLimiter implements RemovalListener<String, AtomicInteger>{
 
-	protected Log log = LogFactory.getLog(RateLimiter.class);
+	protected static Logger log = LoggerFactory.getLogger(RateLimiter.class);
 	
 	Timeframe timeframe = Timeframe.MINUTES;
 	Integer timeframeAmount = 1;

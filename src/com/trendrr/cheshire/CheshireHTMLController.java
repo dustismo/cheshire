@@ -8,8 +8,8 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.util.Date;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.sampullara.mustache.MustacheBuilder;
 import com.sampullara.mustache.MustacheException;
@@ -30,7 +30,7 @@ import com.trendrr.strest.server.StrestController;
  */
 public class CheshireHTMLController extends CheshireController {
 
-	protected static Log log = LogFactory.getLog(CheshireHTMLController.class);
+	protected static Logger log = LoggerFactory.getLogger(CheshireHTMLController.class);
 	
 	protected DynMap sessionStorage = new DynMap();
 	

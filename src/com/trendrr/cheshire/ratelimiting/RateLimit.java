@@ -3,8 +3,8 @@
  */
 package com.trendrr.cheshire.ratelimiting;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.trendrr.json.simple.JSONAware;
 
@@ -19,7 +19,7 @@ import com.trendrr.json.simple.JSONAware;
  */
 public class RateLimit implements JSONAware {
 
-	protected static Log log = LogFactory.getLog(RateLimit.class);
+	protected static Logger log = LoggerFactory.getLogger(RateLimit.class);
 	protected String id; //the user id.
 	protected String type = "ALL_GETS"; //all get requests
 	protected Integer limit = 1000;
