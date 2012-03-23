@@ -19,8 +19,6 @@ html:
       - com.trendrr.cheshire.filters.SessionFilter
       - com.trendrr.cheshire.filters.AuthenticationFilter
       - com.trendrr.cheshire.filters.AccessFilter
-   authentication:
-      - com.trendrr.v4.authentication.SessionAuthentication
    pages:
       # login page for redirecting when needed
       login: /login
@@ -68,3 +66,6 @@ access_log:
    # How much time is represented by each file
    file_time_scale : 6 hours
    max_files : 10
+
+# filename to configure the logger (by default logger is logback)
+logger_config_filename : config/logback.xml
