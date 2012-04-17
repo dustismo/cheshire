@@ -18,7 +18,7 @@ public class LogbackConfigure {
 	
 	public static void configLogback(String configFilename) {
 	    LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
-	            try {
+	       try {
 	           JoranConfigurator configurator = new JoranConfigurator();
 	           configurator.setContext(lc);
 	           lc.reset();

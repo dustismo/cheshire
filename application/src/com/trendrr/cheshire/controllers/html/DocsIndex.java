@@ -40,7 +40,8 @@ public class DocsIndex extends Docs {
 				categories.add(c);
 		}
 		val.put("categories", categories);
-		this.render("/documenation/index", val);
+		log.warn(val.toJSONString());
+		this.render("/documentation/index", val);
 	}
 	
 	/**

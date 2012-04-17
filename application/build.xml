@@ -37,36 +37,22 @@
 		
 		<mkdir dir="build/jar/META-INF" />
 		
-		<!--
-		<copy todir="build/jar/conf">
-			<fileset dir="conf">
-				<exclude name="META-INF" />
-				<include name="*" />
-			</fileset>
-		</copy>
-		
-		
-		<copy todir="build/jar/conf">
-			<fileset dir="conf">
-				<include name="api_config.yaml" />
-			</fileset>
-		</copy>
-		<copy todir="build/jar/conf">
-			<fileset dir="">
-				<include name="build.num" />
-			</fileset>
-		</copy>
-		-->		
-		
 		<!-- Set up the class path.. Seems verbose, ehh? yeah, There should be a better way! -->  
 		<property name="jar-all" location="lib" />
 		<fileset id="jars" dir="${jar-all}">
 			<include name="*.jar" />
 		</fileset>
-		<path id="cp"> <fileset refid="jars" /> </path>
+		<!-- add xml files from config directory -->
+		<property name="conf-all" location="config" />
+		<fileset id="confxml" dir="${conf-all}">
+			<include name="*.xml" />
+		</fileset>
+		<path id="cp"> <fileset refid="jars" /> <fileset refid="confxml" /></path>
 		<pathconvert property="classpath" refid="cp"
-		                 pathsep=" " dirsep="/">
-		      <map from="${jar-all}" to="lib" />
+		                 pathsep=" " dirsep="/">     
+			<map from="${jar-all}" to="lib" />
+			<map from="${conf-all}" to="config" />
+						
 		</pathconvert>
 		
 		<!-- build the manifest -->

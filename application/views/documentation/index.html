@@ -1,0 +1,13 @@
+{{<template}}
+{{$body}} 
+	<h1>DOCUMENTATION</h1> 
+
+	{{#categories}}
+		<h3>{{category}}</h3>
+		{{#routes}}
+			<a href="/docs{{route}}">{{route}}</a>
+			<em>{{abstract}}</em>
+		{{/routes}}
+	{{/categories}}
+{{/body}}
+{{/template}}

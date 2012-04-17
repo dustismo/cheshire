@@ -25,8 +25,9 @@ import com.trendrr.oss.cache.TrendrrCache;
  * 
  * @description Gives stats about the rate limiting filter. 
  * 
- * 
- * 
+ * @param limit limit the number of results to show
+ * @param user_id @default(PUBLIC) the user_id to show rate limits for 
+ * @param end_date the end date to show results for. @default(NOW)
  */
 @CheshireApi(
 	route = "/admin/rate_limit/stats",

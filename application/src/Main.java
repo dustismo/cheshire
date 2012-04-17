@@ -26,24 +26,11 @@ public class Main {
 	protected static Logger log = LoggerFactory.getLogger(Main.class);
 	
 	public static void main(String ...strings) throws Exception {
-		configLogback("config/logback.xml");
 		CheshireGlobals.baseDir = "application/";
+		LogbackConfigure.configLogback(CheshireGlobals.baseDir + "config/logback.xml");
 		StrestServerBuilder builder = new StrestServerBuilder();
 		builder.addConfigFile(CheshireGlobals.baseDir + "config/config.yaml");
 		builder.build().start();
-	}
-	
-	
-	public static void configLogback(String configFilename) {
-	    LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
-	            try {
-	           JoranConfigurator configurator = new JoranConfigurator();
-	           configurator.setContext(lc);
-	           lc.reset();
-	           configurator.doConfigure(configFilename);
-	       } catch (JoranException je) {
-	           je.printStackTrace();
-	       }
 	}
 	
 }

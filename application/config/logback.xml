@@ -9,9 +9,9 @@
  
     <!--Daily rolling file appender -->
 	<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-		<File>logs/api.log</File>
+		<File>logs/cheshire.log</File>
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-			<FileNamePattern>logs/api.%d{yyyy-MM-dd}.log</FileNamePattern>
+			<FileNamePattern>logs/cheshire.%d{yyyy-MM-dd}.log</FileNamePattern>
 		</rollingPolicy>
  
 		<layout class="ch.qos.logback.classic.PatternLayout">

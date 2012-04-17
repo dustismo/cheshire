@@ -40,7 +40,7 @@ public class LoginController extends CheshireHTMLController {
 		}
 		this.setAuthToken(token);
 		//logged in!
-		this.redirect("/");
+		this.redirect(params.getString("forward", "/"));
 	}
 	
 

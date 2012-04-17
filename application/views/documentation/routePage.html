@@ -1,7 +1,50 @@
-{{<../template}}
-{{$body}} HERE! {{/body}}
+{{<template}}
+{{$body}}
+<h2>{{route}}</h2>
+		
+	{{description}}
+		
+	<h3>Params</h3>
+	<table class="table table-striped">
+		<thead>
+		<tr>
+			<th>Param</th>
+			<th>Required</th>
+			<th>Default</th>
+			<th>Description</th>
+		</tr>
+		</thead>
+		<tbody>
+		{{#params}}
+			<tr>
+				<td>{{param}}</td>
+				<td>{{required}}</td>
+				<td>{{default}}</td>
+				<td>{{description}}</td>
+			</tr>
+		{{/params}}
+		</tbody>
+	</table>
+	
+	<h3>Methods</h3>
+	{{#method}}
+		<h4>{{method}}</h4>
+	{{/method}}
+	
+	{{#example}}
+		<h3>Example</h3>
+		
+		<h2>{{example}}</h2>
+		
+		<pre>
+			<script>
+				var example_result = $params.example_result$
+				document.write(Trendrr.formatJSON(example_result));
+			</script>
+		</pre>
+	{{/example}}
+	
+{{/body}}
 
-
-
-{{</../template}}
+{{/template}}
 

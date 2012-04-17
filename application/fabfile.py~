@@ -25,7 +25,7 @@ def development():
 	# should include this line
 	env.user = raw_input(green('Please enter your username for the server:'))
 	env.to_deploy = 'CheshireProject'
-	env.config_dir = 'config/' + inspect.getframeinfo(inspect.currentframe()).function
+	env.config_dir = 'conf/' + inspect.getframeinfo(inspect.currentframe()).function
 
 
 
@@ -41,7 +41,7 @@ def production():
 	# should include this
 	env.user = raw_input(green('Please enter your username for the server:'))
 	env.to_deploy = 'CheshireProject'
-	env.config_dir = 'config/' + inspect.getframeinfo(inspect.currentframe()).function
+	env.config_dir = 'conf/' + inspect.getframeinfo(inspect.currentframe()).function
 
 
 def _backup():
