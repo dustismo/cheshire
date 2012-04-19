@@ -37,7 +37,34 @@ public class AccessFilter extends CheshireFilter {
 			return;
 		}
 		AuthToken auth = controller.getAuthToken();
-		if (auth == null) {
+		try {
+			if (auth == null) {
+				log.warn("Auth is null!");
+				throw StrestHttpException.FORBIDDEN("Authentication is manditory");
+			}
+			
+			if (auth.getUserAccessRoles().contains("administrator")) {
+				return;
+			}
+	
+			if (!auth.hasAccessToRoute(controller.routes())) {
+				throw StrestHttpException.FORBIDDEN("You do not have access to this api call");
+			}
+			
+			String access[] = controller.requiredAccess();
+			if (access != null && access.length > 0) {
+				Set<String> userAc = auth.getUserAccessRoles();
+				boolean hasAccess = false;
+				for (String ac : access) {
+					if (userAc.contains(ac)) {
+						hasAccess = true;
+					}
+				}
+				if (!hasAccess) {
+					throw StrestHttpException.FORBIDDEN("You do not have access to this api call");
+				}
+			}
+		} catch (StrestHttpException x) {
 			if (controller instanceof CheshireHTMLController) {
 				try {
 					((CheshireHTMLController)controller).redirect(controller.getServerConfig().getString("html.pages.login", "/login") + "?forward=" + 
@@ -48,31 +75,7 @@ public class AccessFilter extends CheshireFilter {
 				}
 				return;
 			}
-			throw StrestHttpException.FORBIDDEN("Authentication is manditory");
 		}
-		
-		if (auth.getUserAccessRoles().contains("administrator")) {
-			return;
-		}
-
-		if (!auth.hasAccessToRoute(controller.routes())) {
-			throw StrestHttpException.FORBIDDEN("You do not have access to this api call");
-		}
-		
-		String access[] = controller.requiredAccess();
-		if (access != null && access.length > 0) {
-			Set<String> userAc = auth.getUserAccessRoles();
-			boolean hasAccess = false;
-			for (String ac : access) {
-				if (userAc.contains(ac)) {
-					hasAccess = true;
-				}
-			}
-			if (!hasAccess) {
-				throw StrestHttpException.FORBIDDEN("You do not have access to this api call");
-			}
-		}
-		
 	}
 
 	/* (non-Javadoc)
