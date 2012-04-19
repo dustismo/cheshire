@@ -125,4 +125,11 @@ public class CheshireHTMLController extends CheshireController {
 	public String getControllerNamespace() {
 		return "html";
 	}
+	
+	public boolean isLoggedIn() {
+		if (this.getAuthToken() == null)
+			return false;
+		
+		return this.getAuthToken().getUserId() != null;
+	}
 }
