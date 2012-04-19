@@ -31,6 +31,7 @@ import com.trendrr.oss.cache.TrendrrCacheStore;
 import com.trendrr.oss.concurrent.Initializer;
 import com.trendrr.oss.concurrent.LazyInit;
 import com.trendrr.strest.StrestException;
+import com.trendrr.strest.StrestHttpException;
 import com.trendrr.strest.server.StrestController;
 import com.trendrr.strest.server.StrestControllerFilter;
 import com.trendrr.strest.server.StrestRouter;
@@ -105,7 +106,6 @@ public class SessionFilter extends CheshireFilter {
         if ("deleted".equals(sessionId)) {
         	sessionId = null;
         }
-        
         if (sessionId != null) {
         	//load the session.
         	DynMap vals = DynMap.instance(this.getSessionPersistence(controller).get(sessionId));
@@ -137,8 +137,12 @@ public class SessionFilter extends CheshireFilter {
 	 * @param controller
 	 * @return
 	 */
-	protected TrendrrCache getSessionPersistence(final CheshireController controller) {
-		return TrendrrCaches.getCacheOrDefault("sessions", controller);
+	protected TrendrrCache getSessionPersistence(final CheshireController controller) throws StrestException {
+		TrendrrCache cache = TrendrrCaches.getCacheOrDefault("sessions", controller);
+		if (cache == null) {
+			throw StrestHttpException.INTERNAL_SERVER_ERROR("No cache configured for SessionFilter");
+		}
+		return cache;
 	}
 	
 	/* (non-Javadoc)
@@ -165,6 +169,11 @@ public class SessionFilter extends CheshireFilter {
 			return;
 		}
 		
+		if (controller.getAuthToken() != null) {
+			//save the auth token.
+			((CheshireHTMLController)controller).getSessionStorage().put("auth_token", controller.getAuthToken().toDynMap());
+			((CheshireHTMLController)controller).getSessionStorage().put("auth_token_class", controller.getAuthToken().getClass().getCanonicalName());
+		}
 		
 		if (sessionId == null && !((CheshireHTMLController)controller).getSessionStorage().isEmpty()) {
 			CookieEncoder cookieEncoder = new CookieEncoder(true);
@@ -177,11 +186,6 @@ public class SessionFilter extends CheshireFilter {
 		//save the session.
 		Date expires = new Date(new Date().getTime()+(1000*this.maxAge));
 		((CheshireHTMLController)controller).getSessionStorage().put("expires", IsoDateUtil.getIsoDate(expires));
-		if (controller.getAuthToken() != null) {
-			//save the auth token.
-			((CheshireHTMLController)controller).getSessionStorage().put("auth_token", controller.getAuthToken().toDynMap());
-			((CheshireHTMLController)controller).getSessionStorage().put("auth_token_class", controller.getAuthToken().getClass().getCanonicalName());
-		}
 		if (sessionId != null) {
 			this.getSessionPersistence(controller).set(sessionId, ((CheshireHTMLController)controller).getSessionStorage().toJSONString(), expires);
 		}
