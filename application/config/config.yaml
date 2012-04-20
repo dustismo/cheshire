@@ -58,7 +58,7 @@ caches:
       host : localhost:11111
    sessions:
       classname : com.trendrr.cheshire.caching.InMemoryTrendrrCache
-      max_size : 1000
+      max_size : 1000 #for inmemory cache only
       expire_seconds : 300  
   
 access_log:
