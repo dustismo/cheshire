@@ -40,8 +40,10 @@ public class AuthToken{
 	protected Set<String> userAccessRoles = new HashSet<String>();
 	protected Integer rateLimit = null;
 	protected boolean saveInConnection = true;
+	protected boolean isAuthenticated = false;
 	
-	
+
+
 	/**
 	 * loads a new auth token based on the classname.
 	 * @param cls
@@ -52,6 +54,15 @@ public class AuthToken{
 		AuthToken tok = Reflection.defaultInstance(AuthToken.class, cls);
 		tok.fromDynMap(content);
 		return tok;
+	}
+	
+	
+	public boolean isAuthenticated() {
+		return isAuthenticated;
+	}
+
+	public void setAuthenticated(boolean isAuthenticated) {
+		this.isAuthenticated = isAuthenticated;
 	}
 	
 	/**
@@ -78,7 +89,8 @@ public class AuthToken{
 			String userId,
 			Collection<String> userAccessRoles,
 			Integer rateLimit,
-			boolean saveInConnection
+			boolean saveInConnection,
+			boolean authenticated
 			) {
 		this.routesAllowed.addAll(routesAllowed);
 		this.routesDisallowed.addAll(routesDisallowed);
@@ -86,6 +98,7 @@ public class AuthToken{
 		this.userAccessRoles.addAll(userAccessRoles);
 		this.setUserId(userId);
 		this.setSaveInConnection(saveInConnection);
+		this.setAuthenticated(authenticated);
 	}
 	
 	/**
@@ -103,6 +116,7 @@ public class AuthToken{
 		mp.put("user_access_roles", this.getUserAccessRoles());
 		mp.put("rate_limit", this.getDefaultRateLimit());
 		mp.put("save_in_connection", this.isSaveInConnection());
+		mp.put("authenticated", this.isAuthenticated());
 		return mp;
 	}
 	
@@ -117,6 +131,7 @@ public class AuthToken{
 		this.setUserId(mp.getString("user_id"));
 		this.setSaveInConnection(mp.getBoolean("save_in_connection", true));
 		this.setDefaultRateLimit(mp.getInteger("rate_limit"));
+		this.setAuthenticated(mp.getBoolean("authenticated", false));
 	}
 
 	
