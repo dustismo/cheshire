@@ -18,9 +18,11 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalNotification;
 import com.trendrr.oss.DynMap;
+import com.trendrr.oss.TimeAmount;
 import com.trendrr.oss.Timeframe;
 import com.trendrr.oss.TypeCast;
 import com.trendrr.oss.cache.TrendrrCache;
+import com.trendrr.oss.exceptions.TrendrrParseException;
 
 
 /**
@@ -31,14 +33,16 @@ import com.trendrr.oss.cache.TrendrrCache;
 public class RateLimiter implements RemovalListener<String, AtomicInteger>{
 
 	protected static Logger log = LoggerFactory.getLogger(RateLimiter.class);
-	
-	Timeframe timeframe = Timeframe.MINUTES;
-	Integer timeframeAmount = 1;
+	TimeAmount timeamount;
 	TrendrrCache longTermCache; //long term cache
 	LoadingCache<String, AtomicInteger> localCache = null; //localcach
 	public RateLimiter(DynMap config) {
-		this.timeframe = Timeframe.instance(config.getString("time_unit", "minutes"));
-		this.timeframeAmount = config.getInteger("time_unit_amount", 1);
+		try {
+			this.timeamount = TimeAmount.instance(config.getString("time_amount", "10 minutes"));
+		} catch (TrendrrParseException e) {
+			log.error("ERROR, Could not initialize the ratelimiter ", e);
+		}
+		
 		localCache = CacheBuilder.newBuilder()
 			       .maximumSize(config.getInteger("local_max_size", 1000))
 			       .expireAfterWrite(config.getInteger("local_flush_seconds", 10), TimeUnit.SECONDS)
@@ -66,8 +70,7 @@ public class RateLimiter implements RemovalListener<String, AtomicInteger>{
 	}
 	
 	protected int epoch(Date date) {
-		int e = timeframe.toTrendrrEpoch(date).intValue();
-		return e - (e % timeframeAmount);
+		return this.timeamount.toTrendrrEpoch(date).intValue();
 	}
 
 	/* (non-Javadoc)
@@ -76,6 +79,6 @@ public class RateLimiter implements RemovalListener<String, AtomicInteger>{
 	@Override
 	public void onRemoval(RemovalNotification<String, AtomicInteger> removal) {
 		/* we keep in long term for 60 X*/
-		this.longTermCache.inc("rate_limits", removal.getKey(), removal.getValue().get(), this.timeframe.add(new Date(), 60*this.timeframeAmount));
+		this.longTermCache.inc("rate_limits", removal.getKey(), removal.getValue().get(), this.timeamount.add(new Date(), 60));
 	}
 }
