@@ -38,8 +38,9 @@ public class AccessFilter extends CheshireFilter {
 		}
 		AuthToken auth = controller.getAuthToken();
 		try {
-			if (auth == null) {
-				log.warn("Auth is null!");
+			log.warn("got auth token: " + auth.toDynMap().toJSONString());
+			if (auth == null || !auth.isAuthenticated()) {
+//				log.warn("Auth is manditory!");
 				throw StrestHttpException.FORBIDDEN("Authentication is manditory");
 			}
 			
@@ -73,7 +74,8 @@ public class AccessFilter extends CheshireFilter {
 					log.error("Exception while trying to redirect to login page:", e);
 					throw StrestHttpException.FORBIDDEN("Authentication is manditory (" + e.getMessage() + ")");
 				}
-				return;
+			} else {
+				throw x;
 			}
 		}
 	}
