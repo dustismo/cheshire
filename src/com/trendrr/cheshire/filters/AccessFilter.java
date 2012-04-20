@@ -48,10 +48,12 @@ public class AccessFilter extends CheshireFilter {
 				return;
 			}
 	
-			if (!auth.hasAccessToRoute(controller.routes())) {
-				throw StrestHttpException.FORBIDDEN("You do not have access to this api call");
+			if (!(controller instanceof CheshireHTMLController)) {
+				//we only check this for api requests.
+				if (!auth.hasAccessToRoute(controller.routes())) {
+					throw StrestHttpException.FORBIDDEN("You do not have access to this api call");
+				}
 			}
-			
 			String access[] = controller.requiredAccess();
 			if (access != null && access.length > 0) {
 				Set<String> userAc = auth.getUserAccessRoles();
