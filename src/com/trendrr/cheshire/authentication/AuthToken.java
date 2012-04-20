@@ -203,6 +203,9 @@ public class AuthToken{
 	 * if this set is empty/null then everything is allowed.  if there is at least
 	 * one route, then these are the <b>only</b> allowed routes
 	 * 
+	 * Note that currently these are applicable to api routes only, not site routes
+	 * 
+	 * 
 	 * For now, routes can be starting fragments. i.e. allowed=['/v4/'] would give access to
 	 * any route starting with /v4/.  TODO: support wildcards
 	 * 
@@ -215,6 +218,9 @@ public class AuthToken{
 	
 	/**
 	 * set individual routes the user does not have access to.
+	 * 
+	 * Note that currently these are applicable to api routes only, not site routes
+	 * 
 	 * 
 	 * For now, routes can be starting fragments. i.e. allowed=['/v4/'] would deny access to
 	 * any route starting with /v4/.  TODO: support wildcards
@@ -237,7 +243,9 @@ public class AuthToken{
 	/**
 	 * Return true if this user has access to the requested route
 	 * 
-	 * The default implementation looks at the routesDisallowed, routesAllowed and userAccess settings.
+	 * Note 
+	 * 
+	 * The default implementation looks at the routesDisallowed and routesAllowed
 	 */
 	public boolean hasAccessToRoute(String route) {
 		Set<String> disallowed = this.getRoutesDisallowed();
@@ -257,11 +265,6 @@ public class AuthToken{
 				if (route.startsWith(al)) {
 					return true;
 				}
-			}
-			
-			if (route.startsWith("/docs")) {
-				//everyone has access to docs
-				return true;
 			}
 			log.warn(route + " not in the allowed list: " + allowed);
 			return false;
