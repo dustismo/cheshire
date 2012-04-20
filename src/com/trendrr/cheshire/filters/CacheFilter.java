@@ -137,7 +137,8 @@ public class CacheFilter extends CheshireFilter {
 		
 		TrendrrCacheItem c = TrendrrCacheItem.instance(meta, res.getContent().array());
 		Date contentexpire = Timeframe.SECONDS.add(new Date(), timeout);
-		cache.set(key, c.serialize(), contentexpire);
+//		log.warn("Setting cache for key: " + key + " " + meta.toJSONString());
+		cache.set("cheshire.cache", key, c.serialize(), contentexpire);
 	}
 	
 
@@ -155,7 +156,7 @@ public class CacheFilter extends CheshireFilter {
 	 */
 	protected TrendrrCacheItem cacheLoad(TrendrrCache cache, String key) throws StrestException {
 		try {
-	//		log.warn("Loading cache: " + key);
+//			log.warn("Loading cache: " + key);
 			Date maxWait = Timeframe.SECONDS.add(new Date(), 120); //we fail if we get nothing in 2 minutes.
 			while (new Date().before(maxWait)) {
 				
@@ -178,7 +179,7 @@ public class CacheFilter extends CheshireFilter {
 				
 				//ok, so I guess we have to wait.
 				do {
-					log.warn("waiting on someone else to reset the cache. ");
+					log.warn("waiting on someone else to reset the cache. " + key);
 					Sleep.millis(300);
 					
 					bytes = (byte[])cache.get("cheshire.cache", key);
@@ -220,6 +221,7 @@ public class CacheFilter extends CheshireFilter {
 		//if the controller is null, its a 404 or something we don't care about.
 		if (controller == null || !this.shouldCache(controller))
 			return;
+//		log.warn("Saving from error");
 		this.save(controller, this.errorTimeoutSeconds, response);
 	}
 }
