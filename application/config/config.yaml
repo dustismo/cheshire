@@ -19,6 +19,7 @@ html:
       - com.trendrr.cheshire.filters.SessionFilter
       - com.trendrr.cheshire.filters.AuthenticationFilter
       - com.trendrr.cheshire.filters.AccessFilter
+      - com.trendrr.cheshire.filters.ErrorHTMLFilter #handles redirects/flash messages for thrown and uncaught exceptions.
    pages:
       # login page for redirecting when needed
       login: /login
@@ -76,7 +77,7 @@ rate_limiting:
    time_amount: 1 hour #How often the individual rate limits reset.
    local_flush_seconds : 10 #how often to flush the inmemory counts.
    local_max_size : 1000 #max # of ratelimits to hold in local memory
-
+   default_limit : 1000 #default limit per time_amount.  this can be overridden in the AuthToken.
 
 
 # filename to configure the logger (by default logger is logback)
