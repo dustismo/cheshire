@@ -116,6 +116,7 @@ public class SessionFilter extends CheshireFilter {
         		return;
         	}
         	if (vals != null) {
+        		log.info("Got session: " + vals.toJSONString());
         		((CheshireHTMLController)controller).getSessionStorage().putAll(vals);
         		DynMap authtmp = vals.getMap("auth_token");
         		if (authtmp != null) {
@@ -174,6 +175,7 @@ public class SessionFilter extends CheshireFilter {
 			((CheshireHTMLController)controller).getSessionStorage().put("auth_token", controller.getAuthToken().toDynMap());
 			((CheshireHTMLController)controller).getSessionStorage().put("auth_token_class", controller.getAuthToken().getClass().getCanonicalName());
 		}
+		log.info("Storing session!!!");
 		
 		if (sessionId == null && !((CheshireHTMLController)controller).getSessionStorage().isEmpty()) {
 			CookieEncoder cookieEncoder = new CookieEncoder(true);
@@ -197,5 +199,16 @@ public class SessionFilter extends CheshireFilter {
 	@Override
 	public void error(CheshireController controller, HttpResponse response,
 			Exception exception) {
+		if (controller == null || !(controller instanceof CheshireHTMLController)) {
+			return;
+		}
+		CheshireHTMLController c = (CheshireHTMLController)controller;
+		//add flash message and still save the session.
+		c.flashMessage("error", "Error!", exception.getMessage());
+		try {
+			this.after(controller);
+		} catch (Exception x) {
+			log.error("Caught", x);
+		}
 	}
 }

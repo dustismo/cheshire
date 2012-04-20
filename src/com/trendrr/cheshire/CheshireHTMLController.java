@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.Date;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -132,4 +133,34 @@ public class CheshireHTMLController extends CheshireController {
 		
 		return this.getAuthToken().getUserId() != null;
 	}
+	
+	/**
+	 * adds a flash message.
+	 * @param type error,success,info
+	 * @param message
+	 */
+	public void flashMessage(String type, String title, String message) {
+		List<DynMap> msgs = this.getSessionStorage().getListOrEmpty(DynMap.class, "flash_msg");
+		if (type == null) {
+			type = "info";
+		}
+		
+		DynMap msg = new DynMap();
+		msg.put("msg", message);
+		msg.put("type", type);
+		msg.put("title", title);
+		msgs.add(msg);
+		this.getSessionStorage().put("flash_msg", msgs);
+	}
+	
+	/**
+	 * gets and clears all the flash messages.  returns null if no messages
+	 * @return
+	 */
+	public List<DynMap> getClearFlashMessages() {
+		List<DynMap> mp = this.getSessionStorage().getList(DynMap.class, "flash_msg");
+		this.getSessionStorage().remove("flash_msg");
+		return mp;
+	}
+	
 }
