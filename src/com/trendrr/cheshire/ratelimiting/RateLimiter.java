@@ -17,6 +17,8 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalNotification;
+import com.trendrr.cheshire.CheshireController;
+import com.trendrr.cheshire.caching.TrendrrCaches;
 import com.trendrr.oss.DynMap;
 import com.trendrr.oss.TimeAmount;
 import com.trendrr.oss.Timeframe;
@@ -36,13 +38,14 @@ public class RateLimiter implements RemovalListener<String, AtomicInteger>{
 	TimeAmount timeamount;
 	TrendrrCache longTermCache; //long term cache
 	LoadingCache<String, AtomicInteger> localCache = null; //localcach
-	public RateLimiter(DynMap config) {
+	public RateLimiter(CheshireController controller) {
+		DynMap config = controller.getServerConfig().getMap("rate_limiting");
 		try {
 			this.timeamount = TimeAmount.instance(config.getString("time_amount", "10 minutes"));
 		} catch (TrendrrParseException e) {
 			log.error("ERROR, Could not initialize the ratelimiter ", e);
 		}
-		
+		this.longTermCache = TrendrrCaches.getCacheOrDefault("rate_limits", controller);
 		localCache = CacheBuilder.newBuilder()
 			       .maximumSize(config.getInteger("local_max_size", 1000))
 			       .expireAfterWrite(config.getInteger("local_flush_seconds", 10), TimeUnit.SECONDS)
