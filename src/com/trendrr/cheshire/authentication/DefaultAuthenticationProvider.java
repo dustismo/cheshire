@@ -8,6 +8,7 @@ import java.util.Date;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.trendrr.cheshire.CheshireController;
 import com.trendrr.cheshire.caching.TrendrrCaches;
 import com.trendrr.oss.DynMap;
 import com.trendrr.oss.Reflection;
@@ -27,7 +28,7 @@ public abstract class DefaultAuthenticationProvider implements AuthenticationPro
 	protected static Logger log = LoggerFactory.getLogger(DefaultAuthenticationProvider.class);
 
 	
-	public TrendrrCache getCache(StrestController controller) {
+	public TrendrrCache getCache(CheshireController controller) {
 		return TrendrrCaches.getCacheOrDefault("authentication.cache", controller);
 	}
 	
@@ -37,7 +38,7 @@ public abstract class DefaultAuthenticationProvider implements AuthenticationPro
 	 * @param key
 	 * @return
 	 */
-	public AuthToken getFromCache(StrestController controller, String key) {
+	public AuthToken getFromCache(CheshireController controller, String key) {
 		Object obj = this.getCache(controller).get("auth_tokens", key);
 		if (obj == null)
 			return null;
@@ -55,7 +56,7 @@ public abstract class DefaultAuthenticationProvider implements AuthenticationPro
 		return null;
 	}
 	
-	public void saveToCache(StrestController controller, String key, AuthToken token, int timeoutSeconds) {
+	public void saveToCache(CheshireController controller, String key, AuthToken token, int timeoutSeconds) {
 		TrendrrCacheItem item = new TrendrrCacheItem();
 		item.getMetadata().put("auth_token_class", token.getClass().getName());
 		try {

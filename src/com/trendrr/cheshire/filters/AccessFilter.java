@@ -37,7 +37,7 @@ public class AccessFilter extends CheshireFilter {
 			return;
 		}
 		AuthToken auth = controller.getAuthToken();
-		try {
+//		try {
 			log.warn("got auth token: " + auth.toDynMap().toJSONString());
 			if (auth == null || !auth.isAuthenticated()) {
 //				log.warn("Auth is manditory!");
@@ -67,19 +67,19 @@ public class AccessFilter extends CheshireFilter {
 					throw StrestHttpException.FORBIDDEN("You do not have access to this api call");
 				}
 			}
-		} catch (StrestHttpException x) {
-			if (controller instanceof CheshireHTMLController) {
-				try {
-					((CheshireHTMLController)controller).redirect(controller.getServerConfig().getString("html.pages.login", "/login") + "?forward=" + 
-							URLEncoder.encode(controller.getRequest().getUri(), "utf-8"));
-				} catch (UnsupportedEncodingException e) {
-					log.error("Exception while trying to redirect to login page:", e);
-					throw StrestHttpException.FORBIDDEN("Authentication is manditory (" + e.getMessage() + ")");
-				}
-			} else {
-				throw x;
-			}
-		}
+//		} catch (StrestHttpException x) {
+//			if (controller instanceof CheshireHTMLController) {
+//				try {
+//					((CheshireHTMLController)controller).redirect(controller.getServerConfig().getString("html.pages.login", "/login") + "?forward=" + 
+//							URLEncoder.encode(controller.getRequest().getUri(), "utf-8"));
+//				} catch (UnsupportedEncodingException e) {
+//					log.error("Exception while trying to redirect to login page:", e);
+//					throw StrestHttpException.FORBIDDEN("Authentication is manditory (" + e.getMessage() + ")");
+//				}
+//			} else {
+//				throw x;
+//			}
+//		}
 	}
 
 	/* (non-Javadoc)
@@ -97,8 +97,14 @@ public class AccessFilter extends CheshireFilter {
 	@Override
 	public void error(CheshireController controller, HttpResponse response,
 			Exception exception) {
-		// TODO Auto-generated method stub
-		
+		if (controller != null && controller instanceof CheshireHTMLController) {
+			try {
+				((CheshireHTMLController)controller).redirect(controller.getServerConfig().getString("html.pages.login", "/login") + "?forward=" + 
+						URLEncoder.encode(controller.getRequest().getUri(), "utf-8"));
+			} catch (UnsupportedEncodingException e) {
+				log.error("Exception while trying to redirect to login page:", e);
+			}
+		}
 	}
 
 	

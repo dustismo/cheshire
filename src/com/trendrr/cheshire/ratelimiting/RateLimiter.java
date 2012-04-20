@@ -35,9 +35,11 @@ import com.trendrr.oss.exceptions.TrendrrParseException;
 public class RateLimiter implements RemovalListener<String, AtomicInteger>{
 
 	protected static Logger log = LoggerFactory.getLogger(RateLimiter.class);
-	TimeAmount timeamount;
-	TrendrrCache longTermCache; //long term cache
-	LoadingCache<String, AtomicInteger> localCache = null; //localcach
+	protected TimeAmount timeamount;
+	protected TrendrrCache longTermCache; //long term cache
+	protected LoadingCache<String, AtomicInteger> localCache = null; //localcach
+	protected Integer defaultLimit = null;
+	
 	public RateLimiter(CheshireController controller) {
 		DynMap config = controller.getServerConfig().getMap("rate_limiting");
 		try {
@@ -45,6 +47,7 @@ public class RateLimiter implements RemovalListener<String, AtomicInteger>{
 		} catch (TrendrrParseException e) {
 			log.error("ERROR, Could not initialize the ratelimiter ", e);
 		}
+		this.defaultLimit = config.getInteger("default_limit");
 		this.longTermCache = TrendrrCaches.getCacheOrDefault("rate_limits", controller);
 		localCache = CacheBuilder.newBuilder()
 			       .maximumSize(config.getInteger("local_max_size", 1000))
@@ -58,7 +61,13 @@ public class RateLimiter implements RemovalListener<String, AtomicInteger>{
 			       });
 	}
 	
-	
+	/**
+	 * returns the default amount of ratelimiting.  null means no limits
+	 * @return
+	 */
+	public Integer getDefaultRateLimit() {
+		return defaultLimit;
+	}
 	public boolean shouldThrottle(RateLimit limit) {
 		String key = this.epoch(new Date()) + ":" + limit.getId() + ":" + limit.getType();
 		try {

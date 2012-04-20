@@ -6,6 +6,7 @@ package com.trendrr.cheshire.authentication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.trendrr.cheshire.CheshireController;
 import com.trendrr.strest.StrestException;
 import com.trendrr.strest.server.StrestController;
 
@@ -20,5 +21,5 @@ import com.trendrr.strest.server.StrestController;
  */
 public interface AuthenticationProvider {
 
-	public AuthToken authenticate(StrestController controller) throws StrestException;
+	public AuthToken authenticate(CheshireController controller) throws StrestException;
 }

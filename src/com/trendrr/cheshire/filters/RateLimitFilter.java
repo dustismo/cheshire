@@ -47,16 +47,20 @@ public class RateLimitFilter extends CheshireFilter {
 			return;
 		}
 		
-		RateLimit rl = token.getRateLimit(controller);
-		if (rl == null) {
-			return;
-		}
+		
 		if (lock.start()) {
 			try {
 				limiter = this.initRateLimiter(controller);
 			} finally {
 				lock.end();
 			}
+		}
+		
+		if (limiter == null)
+			return;
+		RateLimit rl = token.getRateLimit(limiter,controller);
+		if (rl == null) {
+			return;
 		}
 		if (limiter.shouldThrottle(rl)) {
 			throw StrestHttpException.RATE_LIMITED();
