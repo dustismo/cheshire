@@ -1,4 +1,5 @@
 {{<template}}
+{{$title}}{{route}}{{/title}}
 {{$body}}
 <h2>{{route}}</h2>
 		
@@ -36,15 +37,17 @@
 		
 		<h2>{{example}}</h2>
 		
-		<pre>
-			<script>
-				var example_result = $params.example_result$
-				document.write(Trendrr.formatJSON(example_result));
-			</script>
+		<pre id="example_result">
+		
 		</pre>
 	{{/example}}
 	
 {{/body}}
-
+{{$scripts}}
+	<script>
+		var example_result = {{{example_result}}};
+		$('#example_result').html(Cheshire.formatJSON(example_result));
+	</script>
+{{/scripts}}
 {{/template}}
 
