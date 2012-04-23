@@ -37,7 +37,7 @@ Cheshire.formatJSON = function(oData, sIndent) {
         var sIndent = "";
     }
     var sIndentStyle = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
-    var sDataType = Trendrr.typeOf(oData);
+    var sDataType = Cheshire.typeOf(oData);
 
     // open object
     if (sDataType == "array") {
@@ -70,10 +70,10 @@ Cheshire.formatJSON = function(oData, sIndent) {
         }
 
         // display relevant data type
-        switch (Trendrr.typeOf(vValue)) {
+        switch (Cheshire.typeOf(vValue)) {
             case "array":
             case "object":
-                sHTML += Trendrr.formatJSON(vValue, (sIndent + sIndentStyle));
+                sHTML += Cheshire.formatJSON(vValue, (sIndent + sIndentStyle));
                 break;
             case "boolean":
             case "number":
@@ -103,3 +103,106 @@ Cheshire.formatJSON = function(oData, sIndent) {
     // return
     return sHTML;
 }
+
+
+/**
+ * Usage: 
+ * 
+ * CheshireApi.request({});
+ * 
+ * see options for request below.
+ * 
+ * TODO: this is ajax, need a websockets version.
+ * 
+ */
+CheshireApi = (function() {
+	//private
+	
+	
+	//public 
+	return {
+		/**
+		 * Options:
+		 * 
+		 * api => the endpoint ex: /v4/system/ping
+		 * method => GET, POST, DELETE, PUT
+		 * params => params to pass to the api.
+		 * form => form element to get params from, will override 
+		 * on_success => the result of the api call: function(request, result)
+		 * on_error => an error was returned function(request, code, message)
+		 * on_complete => the request is finished, really only applicable for stream requests. function(request)
+		 */
+		request : function(config) {
+			var options = $.extend({
+				params: {},
+				method: 'GET',
+				on_success: function(request, result) {
+					console.log(request);
+					console.log(result);
+				},
+				on_error: function(request, code, message) {
+					console.log("ERROR: " + code + " -- " + message);
+				},
+				on_complete: function(request) {
+					//do nothing.
+				}
+			},config);
+						
+			if((options.dataType == undefined)||(options.dataType == '')){
+				options.dataType = 'json';
+			} 
+			
+			if (options.form) {
+				options.params = $.extend(options.params,Cheshire.serialize(options.form));
+			}
+			
+			//allow params to be a request string.
+			if (options.method == 'GET' && Cheshire.typeOf(options.params) == 'string'){
+				options.api = options.api + options.params;
+			} 
+			
+			$.ajax({
+				  type: options.method,
+				  url: options.api,
+				  dataType: options.dataType,
+				  data: Cheshire.urlEncodeParams(options.params),
+				  success: function(obj){
+					 options.on_success(options, obj);
+					 if (options.on_complete) {
+						 options.on_complete(options);
+					 }
+				  },
+				  error: function(XMLHttpRequest, textStatus, errorThrown){
+					  options.on_error(options, XMLHttpRequest.status, errorThrown);
+					  if (errorThrown)
+						  console.log("Error " + errorThrown);
+					  if (options.on_complete) {
+						  options.on_complete(options);
+					  }
+				  }
+			});
+		}
+	}
+}())
+
+
+Cheshire.urlEncode = function(str) {
+	return encodeURIComponent(str);
+};
+
+Cheshire.urlEncodeParams = function(params) {
+	
+	//urlEncode the params..
+	if (!params) {
+		return params;
+	}
+
+	if (Cheshire.typeOf(params) == 'string') 
+		return params
+
+	var pms = {};
+	for (param in params) {
+		pms[Cheshire.urlEncode(param)] = Cheshire.urlEncode(params[param]);
+	}
+	return pms;
+};
