@@ -63,16 +63,20 @@ public class ErrorHTMLFilter extends CheshireFilter {
 			if (code == 401) {
 				//unauthorized
 				try {
+//					log.warn("Redirecting to login:");
 					c.redirect(controller.getServerConfig().getString("html.pages.login", "/login") + "?forward=" + 
 							URLEncoder.encode(controller.getRequest().getUri(), "utf-8"));
 					return;
 				} catch (UnsupportedEncodingException e) {
 					log.warn("Caught",e);
 				}
-			}
-			c.redirect(controller.getServerConfig().getString("html.pages.error_dir", "/error/") + code);
+			}							
+
+//			log.warn("Redirecting to " + code);
+			c.redirect(controller.getServerConfig().getString("html.pages.error_dir", "/errors") + "/" + code);
 			return;
 		}
-		c.redirect(controller.getServerConfig().getString("html.pages.error_dir", "/error/") + 501);
+//		log.warn("Redirecting to Roor 501");
+		c.redirect(controller.getServerConfig().getString("html.pages.error_dir", "/errors") + "/" + 501);
 	}
 }
