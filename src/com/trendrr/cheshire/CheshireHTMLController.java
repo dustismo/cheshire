@@ -18,6 +18,8 @@ import com.sampullara.mustache.Scope;
 import com.trendrr.oss.DynMap;
 import com.trendrr.oss.FileHelper;
 import com.trendrr.strest.ContentTypes;
+import com.trendrr.strest.StrestException;
+import com.trendrr.strest.StrestHttpException;
 import com.trendrr.strest.server.StrestController;
 
 
@@ -42,7 +44,7 @@ public class CheshireHTMLController extends CheshireController {
 		return sessionStorage;
 	}
 
-	public static void main(String ...strings) {
+	public static void main(String ...strings) throws StrestException {
 		{
 			DynMap params = new DynMap();
 			params.put("hello", "you");
@@ -68,7 +70,7 @@ public class CheshireHTMLController extends CheshireController {
 	 * @param template path to the mustache template.  defaults to looking in the 'views' folder.
 	 * @param templateParams
 	 */
-	public void render(String template, DynMap templateParams) {
+	public void render(String template, DynMap templateParams) throws StrestException{
 //		String root = this.getServerConfig().getString("view_path", "views");
 		String root = CheshireGlobals.baseDir + "views";
 		
@@ -81,7 +83,9 @@ public class CheshireHTMLController extends CheshireController {
 //		String view = "views/" + template;
 		StringWriter str = new StringWriter();
 		try {
-			MustacheBuilder builder = new MustacheBuilder(new File(root));
+			
+			File f = new File(root);
+			MustacheBuilder builder = new MustacheBuilder(f);
 			builder.parseFile(template).execute(str, new Scope(templateParams, new Scope(this)));
 //			String t = FileHelper.loadString(view);
 //			System.out.println(t);
@@ -92,9 +96,15 @@ public class CheshireHTMLController extends CheshireController {
 //			System.out.println(str);
 			this.setResponseUTF8(ContentTypes.HTML, str.toString());
 		} catch (MustacheException e) {
-			log.error("Caught", e);
+//			e.printStackTrace();
+			if (e.getCause() instanceof java.io.FileNotFoundException) {
+				throw StrestHttpException.NOT_FOUND(root + File.pathSeparator + template + " not found");
+			} else {
+				throw StrestHttpException.INTERNAL_SERVER_ERROR(e.getMessage());
+			}
 		} catch (Exception e) {
 			log.error("Caught", e);
+			throw StrestHttpException.INTERNAL_SERVER_ERROR(e.getMessage());
 		}
 	}
 
