@@ -37,49 +37,34 @@ public class AccessFilter extends CheshireFilter {
 			return;
 		}
 		AuthToken auth = controller.getAuthToken();
-//		try {
-			log.warn("got auth token: " + auth.toDynMap().toJSONString());
-			if (auth == null || !auth.isAuthenticated()) {
+		if (auth == null || !auth.isAuthenticated()) {
 //				log.warn("Auth is manditory!");
-				throw StrestHttpException.FORBIDDEN("Authentication is manditory");
+			throw StrestHttpException.UNAUTHORIZED("Authentication is manditory");
+		}
+		
+		if (auth.getUserAccessRoles().contains("administrator")) {
+			return;
+		}
+
+		if (!(controller instanceof CheshireHTMLController)) {
+			//we only check this for api requests.
+			if (!auth.hasAccessToRoute(controller.routes())) {
+				throw StrestHttpException.FORBIDDEN("You do not have access to this api call");
 			}
-			
-			if (auth.getUserAccessRoles().contains("administrator")) {
-				return;
-			}
-	
-			if (!(controller instanceof CheshireHTMLController)) {
-				//we only check this for api requests.
-				if (!auth.hasAccessToRoute(controller.routes())) {
-					throw StrestHttpException.FORBIDDEN("You do not have access to this api call");
+		}
+		String access[] = controller.requiredAccess();
+		if (access != null && access.length > 0) {
+			Set<String> userAc = auth.getUserAccessRoles();
+			boolean hasAccess = false;
+			for (String ac : access) {
+				if (userAc.contains(ac)) {
+					hasAccess = true;
 				}
 			}
-			String access[] = controller.requiredAccess();
-			if (access != null && access.length > 0) {
-				Set<String> userAc = auth.getUserAccessRoles();
-				boolean hasAccess = false;
-				for (String ac : access) {
-					if (userAc.contains(ac)) {
-						hasAccess = true;
-					}
-				}
-				if (!hasAccess) {
-					throw StrestHttpException.FORBIDDEN("You do not have access to this api call");
-				}
+			if (!hasAccess) {
+				throw StrestHttpException.FORBIDDEN("You do not have access to this api call");
 			}
-//		} catch (StrestHttpException x) {
-//			if (controller instanceof CheshireHTMLController) {
-//				try {
-//					((CheshireHTMLController)controller).redirect(controller.getServerConfig().getString("html.pages.login", "/login") + "?forward=" + 
-//							URLEncoder.encode(controller.getRequest().getUri(), "utf-8"));
-//				} catch (UnsupportedEncodingException e) {
-//					log.error("Exception while trying to redirect to login page:", e);
-//					throw StrestHttpException.FORBIDDEN("Authentication is manditory (" + e.getMessage() + ")");
-//				}
-//			} else {
-//				throw x;
-//			}
-//		}
+		}
 	}
 
 	/* (non-Javadoc)
