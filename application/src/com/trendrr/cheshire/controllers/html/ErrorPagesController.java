@@ -9,10 +9,11 @@ import org.slf4j.LoggerFactory;
 import com.trendrr.cheshire.CheshireHTML;
 import com.trendrr.cheshire.CheshireHTMLController;
 import com.trendrr.oss.DynMap;
+import com.trendrr.strest.StrestException;
 
 
 @CheshireHTML(
-		route = "/error/:code",
+		route = "/errors/:code",
 		authenticate = false
 )
 public class ErrorPagesController extends CheshireHTMLController {
@@ -21,6 +22,11 @@ public class ErrorPagesController extends CheshireHTMLController {
 	
 	@Override
 	public void handleGET(DynMap params) throws Exception {
-		this.render("errors/" + params.getString("code"), params);
+		try {
+			this.render("errors/" + params.getString("code"), params);
+		} catch (StrestException x) {
+			//need to avoid infinite loops 
+			log.error("Caught", x);
+		}
 	}
 }
