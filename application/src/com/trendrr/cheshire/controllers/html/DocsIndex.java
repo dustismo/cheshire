@@ -62,28 +62,4 @@ public class DocsIndex extends Docs {
 		return category;
 		
 	}
-	
-	protected boolean hasRouteAcess(DynMap route) {
-		
-		String r = route.getString("route");
-		List<String> access = route.getList(String.class, "access");
-
-		if (!this.getAuthToken().hasAccessToRoute(r)) {
-			return false;
-		}
-		
-		if (access == null || access.isEmpty()) {
-			return true;
-		}
-		if (this.getAuthToken().getUserAccessRoles().contains("administrator")) {
-			return true;
-		}
-		
-		for (String ac : access) {
-			if (this.getAuthToken().getUserAccessRoles().contains(ac)) {
-				return true;
-			}
-		}
-		return false;
-	}
 }

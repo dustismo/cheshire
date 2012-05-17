@@ -50,21 +50,40 @@ public class Docs extends CheshireHTMLController {
 			throw StrestHttpException.BAD_REQUEST("Bad bad bad");
 		}
 		
-		if (!this.getAuthToken().hasAccessToRoute("/" + filename.replace(baseDir, ""))) {
-			throw StrestHttpException.UNAUTHORIZED();
-		}
 		String json = cache.getFileString(FileHelper.toWindowsFilename(filename + ".json"), cacheTimeout);
 		
 		if (json == null) {
 			throw StrestHttpException.NOT_FOUND();
 		}
-		DynMap val = DynMap.instance(json);
-		for (String ac : val.getListOrEmpty(String.class, "access")) {
-			if (!this.getAuthToken().getUserAccessRoles().contains(ac)) {
-				throw StrestHttpException.UNAUTHORIZED();
-			}
+		DynMap route = DynMap.instance(json);
+		if (!this.hasRouteAcess(route)) {
+			throw StrestHttpException.UNAUTHORIZED();
 		}
-		this.render("/documentation/routePage.html", val);
+		
+		this.render("/documentation/routePage.html", route);
 	}
 
+	protected boolean hasRouteAcess(DynMap route) {
+		
+		String r = route.getString("route");
+		List<String> access = route.getList(String.class, "access");
+
+		if (!this.getAuthToken().hasAccessToRoute(r)) {
+			return false;
+		}
+		
+		if (access == null || access.isEmpty()) {
+			return true;
+		}
+		if (this.getAuthToken().getUserAccessRoles().contains("administrator")) {
+			return true;
+		}
+		
+		for (String ac : access) {
+			if (this.getAuthToken().getUserAccessRoles().contains(ac)) {
+				return true;
+			}
+		}
+		return false;
+	}
 }
