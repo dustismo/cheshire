@@ -163,10 +163,16 @@ public class CacheFilter extends CheshireFilter {
 				TrendrrCacheItem content = null;
 				byte[] bytes = (byte[])cache.get("cheshire.cache", key);
 				if (bytes == null) {
+//					log.warn("No Cache Item, do i need to update the cache?");
 					content = new TrendrrCacheItem();
 					content.getMetadata().put("INIT", true);
-					if (cache.setIfAbsent(key, content.serialize(), Timeframe.SECONDS.add(new Date(), 15))) {
+//					log.warn("Checking if its my turn");
+					boolean myTurn = cache.setIfAbsent("cheshire.cache", key, content.serialize(), maxWait);
+					if (myTurn) {
+//						log.warn("My turn to initialize the cache");
 						return null; //our job to initialize the cache.
+					} else {
+//						log.warn("Not my turn");
 					}
 				} else {
 					content = TrendrrCacheItem.deserialize(bytes);
@@ -188,6 +194,10 @@ public class CacheFilter extends CheshireFilter {
 					} else {
 						content = null;
 					}
+//					log.warn("CONTENT: " + content);
+//					if (content != null) 
+//						log.warn("META_DATA: " + content.getMetadata().toJSONString());
+					
 				} while(content != null && content.getMetadata().getBoolean("INIT", false) && new Date().before(maxWait));
 				if (content != null) {
 					//CACHE HIT!
