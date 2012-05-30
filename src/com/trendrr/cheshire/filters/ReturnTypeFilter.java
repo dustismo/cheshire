@@ -75,8 +75,8 @@ public class ReturnTypeFilter extends CheshireFilter {
 			val = new DynMap();
 		
 		DynMap status = val.get(DynMap.class, "status", new DynMap());
-		status.putIfAbsent("message", response.getStatus().getReasonPhrase());
-		status.put("code", response.getStatus().getCode());	
+		status.putIfAbsent("message", response.getStatusMessage());
+		status.put("code", response.getStatusCode());	
 		if (controller != null && !((CheshireApiController)controller).getWarnings().isEmpty()) {
 			status.put("warnings", ((CheshireApiController)controller).getWarnings());
 		}

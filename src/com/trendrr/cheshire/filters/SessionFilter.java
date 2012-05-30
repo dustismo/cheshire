@@ -166,7 +166,7 @@ public class SessionFilter extends CheshireFilter {
 			Cookie cookie = new DefaultCookie(SESSION, "deleted");
 			cookie.setMaxAge(0);
 			cookieEncoder.addCookie(cookie);
-	        controller.getResponse().setHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
+	        controller.getResponse().addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
 	        this.getSessionPersistence(controller).delete(sessionId);
 			return;
 		}
@@ -184,7 +184,7 @@ public class SessionFilter extends CheshireFilter {
 			Cookie cookie = new DefaultCookie(SESSION, sessionId);
 			cookie.setMaxAge(this.maxAge);
 			cookieEncoder.addCookie(cookie);
-	        controller.getResponse().setHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
+	        controller.getResponse().addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
 		}
 		//save the session.
 		Date expires = new Date(new Date().getTime()+(1000*this.maxAge));

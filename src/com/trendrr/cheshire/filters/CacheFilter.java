@@ -20,6 +20,7 @@ import com.trendrr.oss.cache.TrendrrCacheItem;
 import com.trendrr.oss.concurrent.Sleep;
 import com.trendrr.oss.exceptions.TrendrrParseException;
 import com.trendrr.strest.StrestException;
+import com.trendrr.strest.server.v2.models.StrestHeader.Method;
 import com.trendrr.strest.server.v2.models.StrestResponse;
 
 
@@ -55,7 +56,7 @@ public class CacheFilter extends CheshireFilter {
 			return false;
 		}
 		
-		if (controller.getRequest().getMethod() != HttpMethod.GET) {
+		if (controller.getRequest().getMethod() != Method.GET) {
 			//don't cache non GET methods
 			return false;
 		}
@@ -113,7 +114,7 @@ public class CacheFilter extends CheshireFilter {
 	 * @param timeout
 	 * @param res
 	 */
-	protected void save(CheshireController controller, int timeout, HttpResponse res) {
+	protected void save(CheshireController controller, int timeout, StrestResponse res) {
 		if (controller == null)
 			return;
 		
@@ -133,8 +134,8 @@ public class CacheFilter extends CheshireFilter {
 		DynMap meta = new DynMap();
 		meta.put("at", new Date());
 		meta.put("mime", res.getHeader("Content-Type"));
-		meta.put("sts", res.getStatus().getCode());
-		meta.put("sts_msg", res.getStatus().getReasonPhrase());
+		meta.put("sts", res.getStatusCode());
+		meta.put("sts_msg", res.getStatusMessage());
 		
 		TrendrrCacheItem c = TrendrrCacheItem.instance(meta, res.getContent().array());
 		Date contentexpire = Timeframe.SECONDS.add(new Date(), timeout);
