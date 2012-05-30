@@ -11,6 +11,7 @@ import com.trendrr.strest.StrestException;
 import com.trendrr.strest.StrestHttpException;
 import com.trendrr.strest.server.StrestController;
 import com.trendrr.strest.server.StrestControllerFilter;
+import com.trendrr.strest.server.v2.models.StrestResponse;
 
 
 /**
@@ -52,7 +53,7 @@ public class RequiredParamsFilter implements StrestControllerFilter {
 	 * @see com.trendrr.strest.server.StrestControllerFilter#error(com.trendrr.strest.server.StrestController, org.jboss.netty.handler.codec.http.HttpResponse, java.lang.Exception)
 	 */
 	@Override
-	public void error(StrestController controller, HttpResponse response,
+	public void error(StrestController controller, StrestResponse response,
 			Exception exception) {
 		//Do nothing
 	}

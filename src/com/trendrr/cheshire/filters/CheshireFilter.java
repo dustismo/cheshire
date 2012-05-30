@@ -11,6 +11,7 @@ import com.trendrr.cheshire.CheshireController;
 import com.trendrr.strest.StrestException;
 import com.trendrr.strest.server.StrestController;
 import com.trendrr.strest.server.StrestControllerFilter;
+import com.trendrr.strest.server.v2.models.StrestResponse;
 
 /**
  * @author Dustin Norlander
@@ -57,7 +58,7 @@ public abstract class CheshireFilter implements StrestControllerFilter {
 	
 	
 	@Override
-	public void error(StrestController controller, HttpResponse response,
+	public void error(StrestController controller, StrestResponse response,
 			Exception exception) {
 		if (controller == null) {
 			this.error(null, response, exception);
@@ -72,6 +73,6 @@ public abstract class CheshireFilter implements StrestControllerFilter {
 		
 	}
 	
-	public abstract void error(CheshireController controller, HttpResponse response,
+	public abstract void error(CheshireController controller, StrestResponse response,
 			Exception exception);
 }

@@ -20,6 +20,7 @@ import com.trendrr.oss.cache.TrendrrCacheItem;
 import com.trendrr.oss.concurrent.Sleep;
 import com.trendrr.oss.exceptions.TrendrrParseException;
 import com.trendrr.strest.StrestException;
+import com.trendrr.strest.server.v2.models.StrestResponse;
 
 
 /**
@@ -226,7 +227,7 @@ public class CacheFilter extends CheshireFilter {
 	 * @see com.trendrr.cheshire.filters.CheshireFilter#error(com.trendrr.cheshire.CheshireController, org.jboss.netty.handler.codec.http.HttpResponse, java.lang.Exception)
 	 */
 	@Override
-	public void error(CheshireController controller, HttpResponse response,
+	public void error(CheshireController controller, StrestResponse response,
 			Exception exception) {
 		//if the controller is null, its a 404 or something we don't care about.
 		if (controller == null || !this.shouldCache(controller))

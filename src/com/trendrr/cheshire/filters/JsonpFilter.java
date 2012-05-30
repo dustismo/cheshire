@@ -20,6 +20,7 @@ import com.trendrr.strest.StrestUtil.HEADERS;
 import com.trendrr.strest.server.ResponseBuilder;
 import com.trendrr.strest.server.StrestController;
 import com.trendrr.strest.server.StrestControllerFilter;
+import com.trendrr.strest.server.v2.models.StrestResponse;
 
 
 /**
@@ -60,7 +61,7 @@ public class JsonpFilter implements StrestControllerFilter {
 	 */
 	@Override
 	public void after(StrestController controller) throws StrestException {
-		HttpResponse response = controller.getResponse();
+		StrestResponse response = controller.getResponse();
 		if (!ContentTypes.JSON.equals(response.getHeader(HttpHeaders.Names.CONTENT_TYPE))) {
 			return;
 		}
@@ -84,7 +85,7 @@ public class JsonpFilter implements StrestControllerFilter {
 	 * @see com.trendrr.strest.server.StrestControllerFilter#error(com.trendrr.strest.server.StrestController, org.jboss.netty.handler.codec.http.HttpResponse, java.lang.Exception)
 	 */
 	@Override
-	public void error(StrestController controller, HttpResponse response,
+	public void error(StrestController controller, StrestResponse response,
 			Exception exception) {
 		// TODO Auto-generated method stub
 

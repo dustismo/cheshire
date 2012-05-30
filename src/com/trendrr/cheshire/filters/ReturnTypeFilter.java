@@ -14,6 +14,7 @@ import com.trendrr.cheshire.CheshireController;
 import com.trendrr.oss.DynMap;
 import com.trendrr.strest.StrestException;
 import com.trendrr.strest.server.ResponseBuilder;
+import com.trendrr.strest.server.v2.models.StrestResponse;
 
 
 /**
@@ -56,7 +57,7 @@ public class ReturnTypeFilter extends CheshireFilter {
 	 * @see com.trendrr.strest.server.StrestControllerFilter#error(com.trendrr.strest.server.StrestController, org.jboss.netty.handler.codec.http.HttpResponse, java.lang.Exception)
 	 */
 	@Override
-	public void error(CheshireController controller, HttpResponse response,
+	public void error(CheshireController controller, StrestResponse response,
 			Exception exception) {
 		String type = "json";
 		if (controller != null) {
@@ -65,7 +66,7 @@ public class ReturnTypeFilter extends CheshireFilter {
 		this.setBytes(controller, type, response, new DynMap());
 	}
 	
-	private void setBytes(CheshireController controller, String type, HttpResponse response, DynMap val) {
+	private void setBytes(CheshireController controller, String type, StrestResponse response, DynMap val) {
 		if (type == null)
 			type = "json";
 		

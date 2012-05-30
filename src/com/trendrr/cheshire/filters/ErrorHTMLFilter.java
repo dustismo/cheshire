@@ -14,6 +14,7 @@ import com.trendrr.cheshire.CheshireController;
 import com.trendrr.cheshire.CheshireHTMLController;
 import com.trendrr.strest.StrestException;
 import com.trendrr.strest.StrestHttpException;
+import com.trendrr.strest.server.v2.models.StrestResponse;
 
 
 /**
@@ -52,7 +53,7 @@ public class ErrorHTMLFilter extends CheshireFilter {
 	 * @see com.trendrr.cheshire.filters.CheshireFilter#error(com.trendrr.cheshire.CheshireController, org.jboss.netty.handler.codec.http.HttpResponse, java.lang.Exception)
 	 */
 	@Override
-	public void error(CheshireController controller, HttpResponse response,
+	public void error(CheshireController controller, StrestResponse response,
 			Exception exception) {
 		if (controller == null || !(controller instanceof CheshireHTMLController)) {
 			return;

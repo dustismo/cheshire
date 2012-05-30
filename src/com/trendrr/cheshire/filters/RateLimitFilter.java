@@ -21,6 +21,7 @@ import com.trendrr.strest.StrestException;
 import com.trendrr.strest.StrestHttpException;
 import com.trendrr.strest.server.StrestController;
 import com.trendrr.strest.server.StrestControllerFilter;
+import com.trendrr.strest.server.v2.models.StrestResponse;
 
 
 /**
@@ -84,7 +85,7 @@ public class RateLimitFilter extends CheshireFilter {
 	 * @see com.trendrr.cheshire.filters.CheshireFilter#error(com.trendrr.cheshire.CheshireController, org.jboss.netty.handler.codec.http.HttpResponse, java.lang.Exception)
 	 */
 	@Override
-	public void error(CheshireController controller, HttpResponse response,
+	public void error(CheshireController controller, StrestResponse response,
 			Exception exception) {
 		// TODO Auto-generated method stub
 		

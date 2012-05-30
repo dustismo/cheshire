@@ -17,6 +17,7 @@ import com.trendrr.cheshire.ratelimiting.RateLimiter;
 import com.trendrr.oss.DynMap;
 import com.trendrr.oss.Reflection;
 import com.trendrr.oss.cache.TrendrrCacheItem;
+import com.trendrr.strest.server.v2.models.StrestHeader.Method;
 
 
 /**
@@ -151,8 +152,7 @@ public class AuthToken{
 		Integer l = limiter.getDefaultRateLimit();
 		if (l == null)
 			return null;
-		
-		if (controller.getRequest().getMethod() == HttpMethod.GET) {
+		if (controller.getRequest().getMethod() == Method.GET) {
 			return new RateLimit(this.userId, "ALL_GETS", l);
 		}
 		return null;
