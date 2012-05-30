@@ -6,7 +6,7 @@
 	{{description}}
 		
 	<h3>Params</h3>
-	<table class="table table-striped">
+	<table class="table table-striped table-bordered">
 		<thead>
 		<tr>
 			<th>Param</th>
@@ -46,7 +46,9 @@
 {{$scripts}}
 	<script>
 		var example_result = {{{example_result}}};
-		$('#example_result').html(Cheshire.formatJSON(example_result));
+		$().ready(function() {
+			$('#example_result').html(Cheshire.formatJSON(example_result));
+		});
 	</script>
 {{/scripts}}
 {{/template}}
