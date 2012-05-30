@@ -46,11 +46,11 @@ public class ReturnTypeFilter extends CheshireFilter {
 	 */
 	@Override
 	public void after(CheshireController cont) throws StrestException {
-		if ((cont.getResponse().getContent() == null || cont.getResponse().getContent().readableBytes()==0)
-				&& cont.isSendResponse()) {
-			String returnType = ((CheshireApiController)cont).getReturnType();
-			this.setBytes(cont, returnType, cont.getResponse(), ((CheshireApiController)cont).getReturnResult());
+		if (!cont.isSendResponse()) {
+			return;//do nothing.
 		}
+		String returnType = ((CheshireApiController)cont).getReturnType();
+		this.setBytes(cont, returnType, cont.getResponse(), ((CheshireApiController)cont).getReturnResult());
 	}
 
 	/* (non-Javadoc)

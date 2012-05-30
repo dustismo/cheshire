@@ -16,7 +16,6 @@ import com.trendrr.oss.TypeCast;
 import com.trendrr.strest.ContentTypes;
 import com.trendrr.strest.StrestException;
 import com.trendrr.strest.StrestHttpException;
-import com.trendrr.strest.StrestUtil.HEADERS;
 import com.trendrr.strest.server.ResponseBuilder;
 import com.trendrr.strest.server.StrestController;
 import com.trendrr.strest.server.StrestControllerFilter;
@@ -74,7 +73,7 @@ public class JsonpFilter implements StrestControllerFilter {
 		if (param == null)
 			return;
 		try {
-			String jsonp = param +"(" + new String(response.getContent().array(), "utf8") + ");";
+			String jsonp = param +"(" + new String(response.getContentBytes(), "utf8") + ");";
 			ResponseBuilder.instance(response).content(ContentTypes.JAVASCRIPT, jsonp.getBytes("utf8"));
 		} catch (UnsupportedEncodingException e) {
 			throw StrestHttpException.INTERNAL_SERVER_ERROR(e.getMessage());

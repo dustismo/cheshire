@@ -9,6 +9,7 @@ import java.io.StringWriter;
 import java.util.Date;
 import java.util.List;
 
+import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -128,7 +129,8 @@ public class CheshireHTMLController extends CheshireController {
 	 * @param url
 	 */
 	public void redirect(String url) {
-		this.getResponseAsBuilder().redirect(url);
+		this.response.setStatus(HttpResponseStatus.FOUND.getCode(), HttpResponseStatus.FOUND.getReasonPhrase());
+		this.response.addHeader("Location", url);
 		this.setSkipExecution(true);
 	}
 	

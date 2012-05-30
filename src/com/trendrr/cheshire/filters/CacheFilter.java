@@ -137,7 +137,7 @@ public class CacheFilter extends CheshireFilter {
 		meta.put("sts", res.getStatusCode());
 		meta.put("sts_msg", res.getStatusMessage());
 		
-		TrendrrCacheItem c = TrendrrCacheItem.instance(meta, res.getContent().array());
+		TrendrrCacheItem c = TrendrrCacheItem.instance(meta, res.getContentBytes());
 		Date contentexpire = Timeframe.SECONDS.add(new Date(), timeout);
 //		log.warn("Setting cache for key: " + key + " " + meta.toJSONString());
 		cache.set("cheshire.cache", key, c.serialize(), contentexpire);
