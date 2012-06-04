@@ -29,9 +29,11 @@ html:
 api:
    filters:
       - com.trendrr.cheshire.filters.AccessLogFilter
-      - com.trendrr.cheshire.filters.JsonpFilter
       - com.trendrr.cheshire.filters.AuthenticationFilter
       - com.trendrr.cheshire.filters.AccessFilter
+      - com.trendrr.cheshire.filters.ReturnTypeFilter #This one is manditory, formats the response.
+      - com.trendrr.cheshire.filters.JsonpFilter
+      
    authentication:
       - com.trendrr.v4.authentication.AuthAuthentication
 
