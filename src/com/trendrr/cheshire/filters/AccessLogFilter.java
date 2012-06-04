@@ -72,10 +72,10 @@ public class AccessLogFilter implements StrestControllerFilter {
 		mp.put("uri", controller.getRequest().getUri());
 		mp.put("strest", controller.isStrest());
 		mp.put("method", controller.getRequest().getMethod().toString());
-		if (controller.getChannelConnection().getChannel() == null) {
+		if (!controller.getChannelConnection().isConnected()) {
 			mp.put("error", "channel disconnected");
 		} else {
-			mp.put("host", controller.getChannelConnection().getChannel().getRemoteAddress());
+			mp.put("host", controller.getChannelConnection().getRemoteAddress());
 		}
 		return mp;
 	}

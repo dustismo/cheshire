@@ -74,14 +74,13 @@ public class ReturnTypeFilter extends CheshireFilter {
 		if (val == null)
 			val = new DynMap();
 		
-		DynMap status = val.get(DynMap.class, "status", new DynMap());
-		status.putIfAbsent("message", response.getStatusMessage());
-		status.put("code", response.getStatusCode());	
+		val.putIfAbsentWithDot("status.message", response.getStatusMessage());
+		val.putWithDot("status.code", response.getStatusCode());
+		
 		if (controller != null && !((CheshireApiController)controller).getWarnings().isEmpty()) {
-			status.put("warnings", ((CheshireApiController)controller).getWarnings());
+			val.putWithDot("status.warnings", ((CheshireApiController)controller).getWarnings());
 		}
 		
-		val.put("status", status);
 		try {
 			if(type.equalsIgnoreCase("json")) {
 				new ResponseBuilder(response).contentJSON(val);
