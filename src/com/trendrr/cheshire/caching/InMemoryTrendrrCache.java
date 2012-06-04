@@ -139,7 +139,24 @@ public class InMemoryTrendrrCache extends TrendrrCache {
 	 */
 	@Override
 	protected synchronized Set<String> _getSet(String key) {
+		return (Set<String>)this._get(key);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.trendrr.oss.cache.TrendrrCache#_getIncMulti(java.lang.String)
+	 */
+	@Override
+	protected Map<String, Long> _getIncMulti(String arg0) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.trendrr.oss.cache.TrendrrCache#_incMulti(java.lang.String, java.util.Map, java.util.Date)
+	 */
+	@Override
+	protected void _incMulti(String arg0, Map<String, Integer> arg1, Date arg2) {
+		// TODO Auto-generated method stub
+		
 	}
 }
