@@ -47,8 +47,15 @@ api:
 #   certificate_password: strest
 
 # Configuration of the default listener (i.e. regular http/strest)
-default:
-   port: 8010
+# Configuration of the listeners
+listeners:
+   http: 
+      port:8000
+   json:
+      port:8009
+#   zmq:
+#      classname: com.trendrr.strest.contrib.zmq.StrestZMQServerListener
+#      port:7233
 
 
 # The default TrendrrCache implementation.  this will be used for 
