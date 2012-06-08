@@ -113,7 +113,11 @@ public class CheshireApiController extends CheshireController {
 				if (obj instanceof DynMap) {
 					vals.add((DynMap)obj);
 				} else {
-					vals.add(DynMapFactory.instance(obj));
+					DynMap mp = DynMapFactory.instance(obj);
+					if (mp != null)
+						vals.add(mp);
+					else
+						vals.add(obj);
 				}
 			}
 		} else {
