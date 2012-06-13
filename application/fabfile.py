@@ -152,6 +152,8 @@ def deploy():
 	sudo('chown -R %s:%s %s/%s' % (env.run_as_user,env.run_as_user,env.deploy_base_dir, env.to_deploy))
 	sudo('chmod -R g+w %s/%s' % (env.deploy_base_dir, env.to_deploy))
 
+	sudo('echo "%s" | sudo tee -a %s/%s/host' % (env.host, env.deploy_base_dir, env.to_deploy))
+	
 	stop()
 	start()
 
