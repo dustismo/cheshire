@@ -7,7 +7,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,7 +88,13 @@ public class CheshireHTMLController extends CheshireController {
 			
 			File f = new File(root);
 			MustacheBuilder builder = new MustacheBuilder(f);
-			builder.parseFile(template).execute(str, new Scope(templateParams, new Scope(this)));
+			
+			//TODO: allow some way for users to affect this..
+			Map<String, Map> additional = new HashMap<String, Map>();
+			additional.put("session", this.getSessionStorage());
+			
+			builder.parseFile(template).execute(str, new Scope(templateParams, new Scope(this, new Scope(additional))));
+//			builder.parseFile(template).execute(str, new Scope(templateParams, new Scope(this)));
 //			String t = FileHelper.loadString(view);
 //			System.out.println(t);
 //			
