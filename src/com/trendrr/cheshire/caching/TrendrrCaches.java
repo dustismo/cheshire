@@ -19,9 +19,23 @@ import com.trendrr.strest.server.StrestController;
  * @created Jan 3, 2012
  * 
  */
-public class TrendrrCaches extends TrendrrCacheStore {
+public class TrendrrCaches {
 
 	protected static Logger log = LoggerFactory.getLogger(TrendrrCaches.class);
+	
+	protected static DynMap configFile = null;
+	
+	/**
+	 * sets the config file for accessing caches without a controller.
+	 * @param config
+	 */
+	public static synchronized void setConfig(DynMap config) {
+		configFile = config;
+	}
+	
+	public static synchronized DynMap getConfig() {
+		return configFile;
+	}
 	
 	public static TrendrrCache getDefaultCache(final StrestController controller) {
 		return getCache("default", controller);
@@ -35,26 +49,27 @@ public class TrendrrCaches extends TrendrrCacheStore {
 	}
 	
 	/**
-	 * gets a trendrr cache implementation. 
-	 * 
-	 * @param configname the name of the configuration details in server configuration 
-	 * @param controller
+	 * gets the cache based on the previously set config file, or if the cache is already initialized.
+	 * @param configname
 	 * @return
 	 */
-	public static TrendrrCache getCache(final String configname, final StrestController controller) {
+	public static TrendrrCache getCache(final String configname) {
+		return getCache(configname, getConfig());
+	}
+	
+	public static TrendrrCache getCache(final String configname, final DynMap conf) {
 		//get the default
 		TrendrrCache cache = TrendrrCacheStore.instance().getCache(configname);
 		//need to check that the controller isn't null otherwise we can initialize a bogus cache,
 		//which would reak havok until restart.
-		if (cache == null && controller != null) {
+		if (cache == null && conf != null) {
 			cache = TrendrrCacheStore.instance().getCache(configname, new Initializer<TrendrrCache>() {
 				@Override
 				public TrendrrCache init() {
-					DynMap config = controller.getServerConfig().getMap("caches." + configname, new DynMap());
+					DynMap config = conf.getMap("caches." + configname, new DynMap());
 					String cls = config.getString("classname");
 					log.warn("Got cls: " +cls);
 					log.warn(config.toJSONString());
-					log.warn("serverconfig: " + controller.getServerConfig().toJSONString());
 					log.warn("key: " + configname);
 					if (cls== null) {
 						return null;
@@ -70,5 +85,16 @@ public class TrendrrCaches extends TrendrrCacheStore {
 			});
 		}
 		return cache;
+		
+	}
+	/**
+	 * gets a trendrr cache implementation. 
+	 * 
+	 * @param configname the name of the configuration details in server configuration 
+	 * @param controller
+	 * @return
+	 */
+	public static TrendrrCache getCache(final String configname, final StrestController controller) {
+		return getCache(configname, controller.getServerConfig());
 	}
 }
