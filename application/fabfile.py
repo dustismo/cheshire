@@ -18,6 +18,7 @@ env.api_docs = True # include strestdoc?
 env.config_dir = '' 
 env.deploy_base_dir = '/mnt/trendrr'
 env.jvm_args = '-Xmx256m' # arguments to pass the jvm
+env.app_args = '' # arguments to pass to the app
 
 def development():
 	env.hosts = ['fillmein']
@@ -69,7 +70,7 @@ def _backup():
 '''	
 def stop():
 	# this is a bad to stop the process, but it *always* works ;)
-	temp = run('ps -ef | grep %s' % env.to_deploy)
+	temp = run('ps -ef | grep -F "%s %s"' % (env.jar_name,env.app_args))
 	if not temp:
 		print "No current process running, skipping"
 		return
@@ -85,7 +86,7 @@ def stop():
 
 def start():
 	with cd('%s/%s' % (env.deploy_base_dir, env.to_deploy)):
-		cmd = 'nohup java -jar %s %s %s > /dev/null' % (env.jvm_args,env.jar_name,env.to_deploy)
+		cmd = 'nohup java -jar %s %s %s > /dev/null' % (env.jvm_args,env.jar_name,env.app_args)
 		service_create(env.to_deploy, cmd)		
 		sudo(cmd, user=env.run_as_user)
 
