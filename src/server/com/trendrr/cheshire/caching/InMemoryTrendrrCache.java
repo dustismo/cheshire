@@ -159,4 +159,12 @@ public class InMemoryTrendrrCache extends TrendrrCache {
 		// TODO Auto-generated method stub
 		
 	}
+
+	/* (non-Javadoc)
+	 * @see com.trendrr.oss.cache.TrendrrCache#shutdown()
+	 */
+	@Override
+	public void shutdown() {
+		this.cache.cleanUp();
+	}
 }
