@@ -41,8 +41,9 @@ public class ExecutionReportFilter extends CheshireFilter {
 				lock.end();
 			}
 		}
-		
+		if (controller != null && controller.getTxnStorage() != null) {
 		controller.getTxnStorage().put("_ex_report_start", new Date());
+		}
 	}
 
 	/* (non-Javadoc)
@@ -73,11 +74,13 @@ public class ExecutionReportFilter extends CheshireFilter {
 	public static String escape(String key) {
 		key = key.replaceAll("\\/", "_sl_");
 		key = key.replaceAll("\\*", "_ax_");
+		key = key.replaceAll("\\:", "_cl_");
 		return key;
 	}
 	public static String unescape(String key) {
 		key = key.replaceAll("\\_sl\\_", "/");
 		key = key.replaceAll("\\_ax\\_", "*");
+		key = key.replaceAll("\\_cl\\_", ":");
 		return key;
 	}
 	
