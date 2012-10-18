@@ -32,6 +32,8 @@ import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import com.trendrr.oss.DynMap;
+import com.trendrr.oss.concurrent.LazyInit;
+import com.trendrr.oss.concurrent.LazyInitObject;
 import com.trendrr.oss.exceptions.TrendrrDisconnectedException;
 import com.trendrr.oss.exceptions.TrendrrException;
 import com.trendrr.oss.exceptions.TrendrrTimeoutException;
@@ -64,7 +66,7 @@ public class CheshireNettyClient implements CheshireApiCaller{
 	
 	protected boolean keepalive = false;
 	
-	protected Date lastSuccessfulPing = null;
+	protected Date lastSuccessfulPing = new Date();
 	
 	protected Timer timer = null; //timer for keepalive pings
 	
@@ -171,40 +173,54 @@ public class CheshireNettyClient implements CheshireApiCaller{
 	void error(StrestRequest req, Throwable t) {
 		req.getTxnId();
 	}
+	static ClientBootstrap bootstrap = null;
+	static LazyInit bootstrapLock = new LazyInit();
 	
 	public void connect() {
-		ChannelFactory factory = new NioClientSocketChannelFactory(this.ioThreadpool, this.workerThreads);
-	    final CheshireClientIncomingHandler handler = new CheshireClientIncomingHandler(this);
+		if (bootstrapLock.start()) {
+			try {
+				ChannelFactory factory = new NioClientSocketChannelFactory(this.ioThreadpool, this.workerThreads);
+			    final CheshireClientIncomingHandler handler = new CheshireClientIncomingHandler();
+				
+				ChannelPipelineFactory pipeline = new ChannelPipelineFactory() {
+		            public ChannelPipeline getPipeline() throws Exception {
+		            	 // Create a default pipeline implementation.
+		                ChannelPipeline pipeline = pipeline();
+		                
+		        		pipeline.addLast("decoder", new CheshireJsonDecoder());
+		                pipeline.addLast("encoder", new CheshireJsonEncoder());
+		                pipeline.addLast("handler", handler);
+		                return pipeline;
+		            }
+		        };
 		
-		ChannelPipelineFactory pipeline = new ChannelPipelineFactory() {
-            public ChannelPipeline getPipeline() throws Exception {
-            	 // Create a default pipeline implementation.
-                ChannelPipeline pipeline = pipeline();
-                
-        		pipeline.addLast("decoder", new CheshireJsonDecoder());
-                pipeline.addLast("encoder", new CheshireJsonEncoder());
-                pipeline.addLast("handler", handler);
-                return pipeline;
-            }
-        };
-
-	    ClientBootstrap bootstrap = new ClientBootstrap(factory);
-	    // At client side option is tcpNoDelay and at server child.tcpNoDelay
-	    bootstrap.setOption("tcpNoDelay", true);
-	    bootstrap.setOption("keepAlive", true);
-	    bootstrap.setPipelineFactory(pipeline);
-	    
+			    bootstrap = new ClientBootstrap(factory);
+			    
+			    // At client side option is tcpNoDelay and at server child.tcpNoDelay
+			    bootstrap.setOption("tcpNoDelay", true);
+			    bootstrap.setOption("keepAlive", true);
+			    bootstrap.setOption("connectTimeoutMillis", 30000);
+			    bootstrap.setPipelineFactory(pipeline);
+			} finally {
+				bootstrapLock.end();
+			}
+		}
 	    //TODO: handle connection pooling
 	    ChannelFuture future = bootstrap.connect(new InetSocketAddress(host,
                 port));
-	    future.awaitUninterruptibly(20, TimeUnit.SECONDS);
+	    future.awaitUninterruptibly(30000);
 	    
 	    if (!future.isSuccess()) {
+	    	future.getCause().printStackTrace();
 	    	log.error("Caught", future.getCause());
 	    	return;
 	    }
 	    this.channel = future.getChannel();
+	    this.channel.setAttachment(this);
 	}
+	
+	
+	
 	
 	/**
 	 * Does an asynchronous api call.  This method returns immediately. the Response or error is sent to the callback.
@@ -283,7 +299,7 @@ public class CheshireNettyClient implements CheshireApiCaller{
 		try {
 			this.channel.close().awaitUninterruptibly(10, TimeUnit.SECONDS);
 		} catch (Exception x) {
-			log.error("Caught", x);
+			log.error("Close Exception", x);
 		}
 	}
 	

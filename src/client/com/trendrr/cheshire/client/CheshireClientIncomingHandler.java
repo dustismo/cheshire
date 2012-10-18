@@ -3,6 +3,7 @@
  */
 package com.trendrr.cheshire.client;
 
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jboss.netty.channel.ChannelHandlerContext;
@@ -24,22 +25,32 @@ public class CheshireClientIncomingHandler extends SimpleChannelUpstreamHandler 
 
 	protected static Log log = LogFactory.getLog(CheshireClientIncomingHandler.class);
 	
-	CheshireNettyClient client;
-	
-	CheshireClientIncomingHandler(CheshireNettyClient client) {
-		this.client = client;
+	CheshireClientIncomingHandler() {
+		
 	}
 	
 	@Override
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
 		StrestResponse response = (StrestResponse)e.getMessage();
-		this.client.incoming(response);
+		
+		CheshireNettyClient client = (CheshireNettyClient)e.getChannel().getAttachment();
+		if (client != null) {
+			client.incoming(response);
+		} else {
+			log.warn("No channel set for : " + e.getChannel());
+			//TODO: should we kill the channel?
+		}
     }
 
     @Override
     public void channelDisconnected(ChannelHandlerContext ctx, ChannelStateEvent e) {
-//	    	log.info("Disconnect! " + ctx);    	
-    	client.disconnected();
+    	CheshireNettyClient client = (CheshireNettyClient)e.getChannel().getAttachment();
+		if (client != null) {
+			client.disconnected();
+		} else {
+			log.warn("No channel set for : " + e.getChannel());
+			//TODO: should we kill the channel?
+		}
     }
     
     @Override
@@ -47,6 +58,13 @@ public class CheshireClientIncomingHandler extends SimpleChannelUpstreamHandler 
             throws Exception {
     	log.warn("Caught", e.getCause());
         e.getChannel().close();
-        client.disconnected();
+        
+        CheshireNettyClient client = (CheshireNettyClient)e.getChannel().getAttachment();
+		if (client != null) {
+			client.disconnected();
+		} else {
+			log.warn("No channel set for : " + e.getChannel());
+			//TODO: should we kill the channel?
+		}
     }
 }
