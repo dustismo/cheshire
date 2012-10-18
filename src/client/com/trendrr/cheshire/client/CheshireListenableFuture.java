@@ -35,7 +35,7 @@ public class CheshireListenableFuture extends AbstractFuture<DynMap> {
 		Futures.addCallback(this, new FutureCallback<DynMap>(){
 			@Override
 			public void onFailure(Throwable error) {
-				callback.error(error);
+				callback.error(CheshireNettyClient.toTrendrrException(error));
 			}
 
 			@Override

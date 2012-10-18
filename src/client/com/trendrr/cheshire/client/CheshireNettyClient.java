@@ -16,6 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -195,7 +196,7 @@ public class CheshireNettyClient implements CheshireApiCaller{
 		}
 	}
 	
-	public void connect() {
+	public synchronized void connect() throws TrendrrException {
 		if (bootstrapLock.start()) {
 			try {
 				synchronized(threadpoolLock) {
@@ -203,12 +204,13 @@ public class CheshireNettyClient implements CheshireApiCaller{
 						ioThreadpool = Executors.newCachedThreadPool();
 					}
 					if (workerThreadpool == null) {
+						
 						workerThreadpool = new ThreadPoolExecutor(
 								1, // core size
 							    50, // max size
 							    60, // idle timeout
 							    TimeUnit.SECONDS,
-							    new ArrayBlockingQueue<Runnable>(60), // queue with a size
+							    new SynchronousQueue<Runnable>(), // queue with a size
 							    new ThreadPoolExecutor.CallerRunsPolicy() //if queue is full run in current thread.
 						);
 					}
@@ -245,12 +247,13 @@ public class CheshireNettyClient implements CheshireApiCaller{
 	    //TODO: handle connection pooling
 	    ChannelFuture future = bootstrap.connect(new InetSocketAddress(host,
                 port));
-	    future.awaitUninterruptibly(30000);
+	    future.awaitUninterruptibly(40000);
 	    
 	    if (!future.isSuccess()) {
-	    	future.getCause().printStackTrace();
-	    	log.error("Caught", future.getCause());
-	    	return;
+	    	throw toTrendrrException(future.getCause());
+	    }
+	    if (this.channel != null) {
+	    	this.close();
 	    }
 	    this.channel = future.getChannel();
 	    this.channel.setAttachment(this);
@@ -289,18 +292,14 @@ public class CheshireNettyClient implements CheshireApiCaller{
 	 * @return
 	 * @throws Exception
 	 */
-	public DynMap apiCall(String endPoint, Verb method, Map params, long timeoutMillis) throws TrendrrTimeoutException, TrendrrException {
+	public DynMap apiCall(String endPoint, Verb method, Map params, long timeoutMillis) throws TrendrrTimeoutException, TrendrrDisconnectedException, TrendrrException {
 		StrestRequest req = this.createRequest(endPoint, method, params);
 		req.setTxnAccept(TxnAccept.SINGLE);
 		CheshireListenableFuture fut = this.apiCall(req);
 		try {
 			return fut.get(timeoutMillis, TimeUnit.MILLISECONDS);
-		} catch (InterruptedException e) {
-			throw new TrendrrTimeoutException(e);
-		} catch (TimeoutException e) {
-			throw new TrendrrTimeoutException(e);
-		} catch (ExecutionException e) {
-			throw new TrendrrException(e);
+		} catch (Exception e) {
+			throw toTrendrrException(e);
 		}
 	}
 	
@@ -322,7 +321,7 @@ public class CheshireNettyClient implements CheshireApiCaller{
 			public void operationComplete(ChannelFuture future) throws Exception {
 				if (!future.isSuccess()) {
 					//set the exception..
-					sf.setException(future.getCause());
+					sf.setException(toTrendrrException(future.getCause()));
 				}
 			}
 		}); 
@@ -334,7 +333,9 @@ public class CheshireNettyClient implements CheshireApiCaller{
 	 */
 	public void close() {
 		try {
-			this.channel.close().awaitUninterruptibly(10, TimeUnit.SECONDS);
+			if (this.channel != null) {
+				this.channel.close().awaitUninterruptibly(10, TimeUnit.SECONDS);
+			}
 		} catch (Exception x) {
 			log.error("Close Exception", x);
 		}
@@ -378,5 +379,38 @@ public class CheshireNettyClient implements CheshireApiCaller{
 	 */
 	public int getPort() {
 		return this.port;
+	}
+	
+	public static TrendrrException toTrendrrException(Throwable t) {
+		if (t == null) {
+			return new TrendrrException("Unhappy no no");
+		}
+		if (t instanceof TrendrrException) {
+			return (TrendrrException)t;
+		}
+		if (t instanceof ExecutionException) {
+			return toTrendrrException(((ExecutionException)t).getCause());
+		}
+		
+		if (t instanceof java.nio.channels.ClosedChannelException) {
+			return new TrendrrDisconnectedException((Exception)t);
+		}
+		
+		if (t instanceof java.net.ConnectException) {
+			return new TrendrrDisconnectedException((Exception)t);	
+		}
+		
+		if (t instanceof InterruptedException) {
+			return new TrendrrTimeoutException((InterruptedException)t);
+		}
+		if (t instanceof TimeoutException) {
+			return new TrendrrTimeoutException((TimeoutException)t);
+		}
+		
+		//default
+		if (t instanceof Exception) {
+			return new TrendrrException((Exception)t);
+		}
+		return new TrendrrException(new Exception(t));
 	}
 }
