@@ -11,9 +11,12 @@ import java.util.Date;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
@@ -56,13 +59,11 @@ public class CheshireNettyClient implements CheshireApiCaller{
 
 	protected static Log log = LogFactory.getLog(CheshireNettyClient.class);
 	
-	ExecutorService ioThreadpool;
-	ExecutorService workerThreads;
-	String host;
-	int port;
-	int connectionPoolSize = 1;
-	ConcurrentHashMap<String, CheshireListenableFuture> futures = new ConcurrentHashMap<String, CheshireListenableFuture>();
-	Channel channel;
+	protected String host;
+	protected int port;
+	protected int connectionPoolSize = 1;
+	protected ConcurrentHashMap<String, CheshireListenableFuture> futures = new ConcurrentHashMap<String, CheshireListenableFuture>();
+	protected Channel channel;
 	
 	protected boolean keepalive = false;
 	
@@ -124,9 +125,7 @@ public class CheshireNettyClient implements CheshireApiCaller{
 	
 	
 	
-	public CheshireNettyClient(ExecutorService ioThreadpool, ExecutorService workerThreads, String host, int port) {
-		this.ioThreadpool = ioThreadpool;
-		this.workerThreads = workerThreads;
+	public CheshireNettyClient(String host, int port) {
 		this.host = host;
 		this.port = port;
 	}
@@ -173,34 +172,72 @@ public class CheshireNettyClient implements CheshireApiCaller{
 	void error(StrestRequest req, Throwable t) {
 		req.getTxnId();
 	}
-	static ClientBootstrap bootstrap = null;
-	static LazyInit bootstrapLock = new LazyInit();
+	protected static ClientBootstrap bootstrap = null;
+	protected static LazyInit bootstrapLock = new LazyInit();
+	protected static ExecutorService ioThreadpool = null;
+	protected static ExecutorService workerThreadpool = null;
+	protected static Object threadpoolLock = new Object();
+	
+	/**
+	 * sets the io threadpool.  this will throw an exception if at least one client has already
+	 * been initialized (all clients share the same threadpools).
+	 * 
+	 * @param service
+	 * @throws TrendrrException
+	 */
+	public static void setExecutors(ExecutorService io, ExecutorService workers) throws TrendrrException {
+		if (bootstrapLock.isInited()) {
+			throw new TrendrrException("Cant set ExecutorService because at least one client has been initialized");
+		}
+		synchronized(threadpoolLock) {
+			ioThreadpool = io;
+			workerThreadpool = workers;
+		}
+	}
 	
 	public void connect() {
 		if (bootstrapLock.start()) {
 			try {
-				ChannelFactory factory = new NioClientSocketChannelFactory(this.ioThreadpool, this.workerThreads);
-			    final CheshireClientIncomingHandler handler = new CheshireClientIncomingHandler();
-				
-				ChannelPipelineFactory pipeline = new ChannelPipelineFactory() {
-		            public ChannelPipeline getPipeline() throws Exception {
-		            	 // Create a default pipeline implementation.
-		                ChannelPipeline pipeline = pipeline();
-		                
-		        		pipeline.addLast("decoder", new CheshireJsonDecoder());
-		                pipeline.addLast("encoder", new CheshireJsonEncoder());
-		                pipeline.addLast("handler", handler);
-		                return pipeline;
-		            }
-		        };
-		
-			    bootstrap = new ClientBootstrap(factory);
-			    
-			    // At client side option is tcpNoDelay and at server child.tcpNoDelay
-			    bootstrap.setOption("tcpNoDelay", true);
-			    bootstrap.setOption("keepAlive", true);
-			    bootstrap.setOption("connectTimeoutMillis", 30000);
-			    bootstrap.setPipelineFactory(pipeline);
+				synchronized(threadpoolLock) {
+					if (ioThreadpool == null) {
+						ioThreadpool = Executors.newCachedThreadPool();
+					}
+					if (workerThreadpool == null) {
+						workerThreadpool = new ThreadPoolExecutor(
+								1, // core size
+							    50, // max size
+							    60, // idle timeout
+							    TimeUnit.SECONDS,
+							    new ArrayBlockingQueue<Runnable>(60), // queue with a size
+							    new ThreadPoolExecutor.CallerRunsPolicy() //if queue is full run in current thread.
+						);
+					}
+					
+					
+					
+					ChannelFactory factory = new NioClientSocketChannelFactory(ioThreadpool, workerThreadpool);
+				    final CheshireClientIncomingHandler handler = new CheshireClientIncomingHandler();
+					
+					ChannelPipelineFactory pipeline = new ChannelPipelineFactory() {
+			            public ChannelPipeline getPipeline() throws Exception {
+			            	 // Create a default pipeline implementation.
+			                ChannelPipeline pipeline = pipeline();
+			                
+			        		pipeline.addLast("decoder", new CheshireJsonDecoder());
+			                pipeline.addLast("encoder", new CheshireJsonEncoder());
+			                pipeline.addLast("handler", handler);
+			                return pipeline;
+			            }
+			        };
+			
+				    bootstrap = new ClientBootstrap(factory);
+				    
+				    // At client side option is tcpNoDelay and at server child.tcpNoDelay
+				    bootstrap.setOption("tcpNoDelay", true);
+				    bootstrap.setOption("keepAlive", true);
+				    bootstrap.setOption("connectTimeoutMillis", 30000);
+				    bootstrap.setPipelineFactory(pipeline);
+				}
 			} finally {
 				bootstrapLock.end();
 			}
@@ -272,7 +309,7 @@ public class CheshireNettyClient implements CheshireApiCaller{
 		String txnId = this.txnId();
 		req.setTxnId(txnId);
 		
-		final CheshireListenableFuture sf = new CheshireListenableFuture(this.workerThreads);
+		final CheshireListenableFuture sf = new CheshireListenableFuture(workerThreadpool);
 		this.futures.put(txnId, sf);
 		if (this.channel == null) {
 			sf.setException(new TrendrrDisconnectedException("Not Connected"));
