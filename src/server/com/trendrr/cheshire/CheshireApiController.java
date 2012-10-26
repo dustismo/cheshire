@@ -96,6 +96,24 @@ public class CheshireApiController extends CheshireController {
 	}
 	
 	/**
+	 * will add to the current data field.  using this will also result in a list.
+	 * 
+	 * this differs from addData in that data will always be a list, even of length 1.
+	 * 
+	 * @param data
+	 */
+	public void addDataList(Object data) {
+		this.addData(data);
+		Object cur = this.getReturnResult().get("data");
+		if (cur instanceof Collection) {
+			return;
+		}
+		List vals = new ArrayList();
+		vals.add(cur);
+		this.setData(vals);
+	}
+	
+	/**
 	 * will add to the current "data" field.  if field is not currently an array, then it is converted.
 	 * 
 	 * Will convert to dynmap if it is not an array or collection.
