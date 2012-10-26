@@ -49,6 +49,10 @@ public class ReturnTypeFilter extends CheshireFilter {
 		if (!cont.isSendResponse()) {
 			return;//do nothing.
 		}
+		if (cont.isSkipExecution()) {
+			return; //response was cached
+		}
+		
 		String returnType = ((CheshireApiController)cont).getReturnType();
 		this.setBytes(cont, returnType, cont.getResponse(), ((CheshireApiController)cont).getReturnResult());
 	}
