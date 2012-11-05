@@ -71,13 +71,14 @@ public class ErrorHTMLFilter extends CheshireFilter {
 				} catch (UnsupportedEncodingException e) {
 					log.warn("Caught",e);
 				}
-			}							
-
+			} 
 //			log.warn("Redirecting to " + code);
 			c.redirect(controller.getServerConfig().getString("html.pages.error_dir", "/errors") + "/" + code);
 			return;
+		} else {
+			log.warn("caught", exception);
 		}
-//		log.warn("Redirecting to Roor 501");
+//		log.warn("Redirecting to 501");
 		c.redirect(controller.getServerConfig().getString("html.pages.error_dir", "/errors") + "/" + 501);
 	}
 }
