@@ -100,6 +100,7 @@ public class SessionFilter extends CheshireFilter {
                 // Reset the cookies if necessary.
                 CookieEncoder cookieEncoder = new CookieEncoder(true);
                 for (Cookie cookie : cookies) {
+                	
                     cookieEncoder.addCookie(cookie);
                 }
             }
@@ -107,17 +108,20 @@ public class SessionFilter extends CheshireFilter {
         if ("deleted".equals(sessionId)) {
         	sessionId = null;
         }
+
         if (sessionId != null) {
         	//load the session.
         	DynMap vals = DynMap.instance(this.getSessionPersistence(controller).get(sessionId));
-        	
+//        	if (vals != null)
+//        		log.warn("GOT SESSION! " + vals.toJSONString());
+//        	else
+//        		log.warn("Couldn't find " + sessionId);
         	Date expires = TypeCast.cast(Date.class, "expires");
         	if (expires != null && expires.before(new Date())) {
         		log.info("Session expired!");
         		return;
         	}
         	if (vals != null) {
-        		log.info("Got session: " + vals.toJSONString());
         		((CheshireHTMLController)controller).getSessionStorage().putAll(vals);
         		DynMap authtmp = vals.getMap("auth_token");
         		if (authtmp != null) {
@@ -176,13 +180,13 @@ public class SessionFilter extends CheshireFilter {
 			((CheshireHTMLController)controller).getSessionStorage().put("auth_token", controller.getAuthToken().toDynMap());
 			((CheshireHTMLController)controller).getSessionStorage().put("auth_token_class", controller.getAuthToken().getClass().getCanonicalName());
 		}
-		log.info("Storing session!!!");
 		
 		if (sessionId == null && !((CheshireHTMLController)controller).getSessionStorage().isEmpty()) {
 			CookieEncoder cookieEncoder = new CookieEncoder(true);
 			sessionId = UUID.randomUUID().toString();
 			Cookie cookie = new DefaultCookie(SESSION, sessionId);
 			cookie.setMaxAge(this.maxAge);
+			cookie.setPath("/");
 			cookieEncoder.addCookie(cookie);
 	        controller.getResponse().addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
 		}
