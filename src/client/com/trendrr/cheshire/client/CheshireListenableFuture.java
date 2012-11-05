@@ -11,6 +11,7 @@ import org.apache.commons.logging.LogFactory;
 import com.google.common.util.concurrent.AbstractFuture;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
+import com.trendrr.cheshire.client.json.CheshireNettyClient;
 import com.trendrr.oss.DynMap;
 import com.trendrr.oss.strest.cheshire.CheshireApiCallback;
 
@@ -26,7 +27,7 @@ public class CheshireListenableFuture extends AbstractFuture<DynMap> {
 	ExecutorService executor;
 	CheshireApiCallback callback = null;
 	
-	CheshireListenableFuture(ExecutorService pool) {
+	public CheshireListenableFuture(ExecutorService pool) {
 		this.executor = pool;
 	}
 	

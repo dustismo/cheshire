@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.trendrr.cheshire.client;
+package com.trendrr.cheshire.client.json;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

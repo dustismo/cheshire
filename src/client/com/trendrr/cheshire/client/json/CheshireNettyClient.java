@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.trendrr.cheshire.client;
+package com.trendrr.cheshire.client.json;
 
 import static org.jboss.netty.channel.Channels.pipeline;
 
@@ -35,6 +35,7 @@ import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import com.trendrr.cheshire.client.CheshireListenableFuture;
 import com.trendrr.oss.DynMap;
 import com.trendrr.oss.concurrent.LazyInit;
 import com.trendrr.oss.concurrent.LazyInitObject;
@@ -56,13 +57,10 @@ import com.trendrr.oss.strest.models.json.StrestJsonRequest;
  * @created Oct 17, 2012
  * 
  */
-public class CheshireNettyClient implements CheshireApiCaller{
+public class CheshireNettyClient extends com.trendrr.cheshire.client.CheshireClient{
 
 	protected static Log log = LogFactory.getLog(CheshireNettyClient.class);
 	
-	protected String host;
-	protected int port;
-	protected int connectionPoolSize = 1;
 	protected ConcurrentHashMap<String, CheshireListenableFuture> futures = new ConcurrentHashMap<String, CheshireListenableFuture>();
 	protected Channel channel;
 	
@@ -127,8 +125,7 @@ public class CheshireNettyClient implements CheshireApiCaller{
 	
 	
 	public CheshireNettyClient(String host, int port) {
-		this.host = host;
-		this.port = port;
+		super(host, port);
 	}
 	
 	
@@ -136,8 +133,9 @@ public class CheshireNettyClient implements CheshireApiCaller{
 	 * Does a synchronous ping.  will throw an exception.  This method will *NOT* trigger a reconnect attempt. 
 	 * @throws Exception
 	 */
+	@Override
 	public void ping() throws TrendrrException {
-		this.apiCall("/ping", Verb.GET, null, 5*1000);
+		super.ping();
 		this.setLastSuccessfullPing(new Date());
 	}
 	
@@ -261,49 +259,7 @@ public class CheshireNettyClient implements CheshireApiCaller{
 	
 	
 	
-	
-	/**
-	 * Does an asynchronous api call.  This method returns immediately. the Response or error is sent to the callback.
-	 * 
-	 * 
-	 * @param endPoint
-	 * @param method
-	 * @param params
-	 * @param callback
-	 */
-	public void apiCall(String endPoint, Verb method, Map params, CheshireApiCallback callback) {
-		StrestRequest req = this.createRequest(endPoint, method, params);
-		req.setTxnAccept(TxnAccept.MULTI);
-		CheshireListenableFuture fut = this.apiCall(req);
-		fut.setCallback(callback);
-		return;
-	}
-	
-	/**
-	 * A synchronous call.  blocks until response is available.  Please note that this does *NOT* block concurrent api calls, so you can continue to 
-	 * make calls in other threads.
-	 * 
-	 * If the maxReconnectAttempts is non-zero (-1 is infinit reconnect attempts), then this will attempt to reconnect and send on any io problems. 
-	 * 
-	 * @param endPoint
-	 * @param method
-	 * @param params
-	 * @param timeoutMillis throw an exception if this # of millis passes,  < 1 should be infinite.
-	 * @return
-	 * @throws Exception
-	 */
-	public DynMap apiCall(String endPoint, Verb method, Map params, long timeoutMillis) throws TrendrrTimeoutException, TrendrrDisconnectedException, TrendrrException {
-		StrestRequest req = this.createRequest(endPoint, method, params);
-		req.setTxnAccept(TxnAccept.SINGLE);
-		CheshireListenableFuture fut = this.apiCall(req);
-		try {
-			return fut.get(timeoutMillis, TimeUnit.MILLISECONDS);
-		} catch (Exception e) {
-			throw toTrendrrException(e);
-		}
-	}
-	
-	
+	@Override	
 	public CheshireListenableFuture apiCall(StrestRequest req) {
 		String txnId = this.txnId();
 		req.setTxnId(txnId);
@@ -348,69 +304,7 @@ public class CheshireNettyClient implements CheshireApiCaller{
 		return Long.toString(l.incrementAndGet());
 	}
 	
-	protected StrestRequest createRequest(String endPoint, Verb method, Map params) {
-		StrestJsonRequest request = new StrestJsonRequest();
-		request.setUri(endPoint);
-		request.setMethod(Method.instance(method.toString())); //TODO:this is stuuupid
-		if (params != null) {
-			DynMap pms = null;
-			if (params instanceof DynMap){
-				pms = (DynMap)params;
-			} else {
-				pms = DynMap.instance(params);
-			}
-			request.setParams(pms);
-		}
-		return request;
-	}
 	
 	
-	/**
-	 * gets the host address
-	 * @return
-	 */
-	public String getHost() {
-		return this.host;
-	}
 	
-	/**
-	 * gets the cheshire port
-	 * @return
-	 */
-	public int getPort() {
-		return this.port;
-	}
-	
-	public static TrendrrException toTrendrrException(Throwable t) {
-		if (t == null) {
-			return new TrendrrException("Unhappy no no");
-		}
-		if (t instanceof TrendrrException) {
-			return (TrendrrException)t;
-		}
-		if (t instanceof ExecutionException) {
-			return toTrendrrException(((ExecutionException)t).getCause());
-		}
-		
-		if (t instanceof java.nio.channels.ClosedChannelException) {
-			return new TrendrrDisconnectedException((Exception)t);
-		}
-		
-		if (t instanceof java.net.ConnectException) {
-			return new TrendrrDisconnectedException((Exception)t);	
-		}
-		
-		if (t instanceof InterruptedException) {
-			return new TrendrrTimeoutException((InterruptedException)t);
-		}
-		if (t instanceof TimeoutException) {
-			return new TrendrrTimeoutException((TimeoutException)t);
-		}
-		
-		//default
-		if (t instanceof Exception) {
-			return new TrendrrException((Exception)t);
-		}
-		return new TrendrrException(new Exception(t));
-	}
 }

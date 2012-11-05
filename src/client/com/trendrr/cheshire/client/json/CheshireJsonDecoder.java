@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.trendrr.cheshire.client;
+package com.trendrr.cheshire.client.json;
 
 import java.nio.charset.Charset;
 import java.text.CharacterIterator;
