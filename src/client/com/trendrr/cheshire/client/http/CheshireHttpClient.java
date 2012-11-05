@@ -66,16 +66,6 @@ public class CheshireHttpClient extends CheshireClient {
 	
 	protected AsyncHttpClient httpClient = null; //in case user wants to use a local one.
 	
-	public AsyncHttpClient getHttpClient() {
-		if (this.httpClient != null)
-			return this.httpClient;
-		return client.get();
-	}
-	
-	public static void main(String ...strings) {
-		
-	}
-	
 	public CheshireHttpClient(String host, int port, ExecutorService callbackExecutor, AsyncHttpClient httpClient) {
 		super(host, port);
 		this.httpClient = httpClient;
@@ -137,5 +127,21 @@ public class CheshireHttpClient extends CheshireClient {
 		if (this.httpClient != null) {
 			this.httpClient.close();
 		}
+	}
+	
+
+	/**
+	 * gets the shared static AsyncHttpClient 
+	 * @return
+	 */
+	public static AsyncHttpClient getAsyncHttpClient() {
+		return client.get();
+	}
+	
+	
+	public AsyncHttpClient getHttpClient() {
+		if (this.httpClient != null)
+			return this.httpClient;
+		return client.get();
 	}
 }
