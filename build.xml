@@ -3,7 +3,7 @@
 <project name="Cheshire" default="jar-server" basedir=".">
 
 	<fileset id="lib" dir="lib">
-		<include name="*.jar" />
+		<include name="**/*.jar" />
 	</fileset>
 	
 	<path id="build.classpath">
