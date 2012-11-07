@@ -20,6 +20,7 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.logging.Log;
@@ -66,25 +67,16 @@ public class CheshireNettyClient extends com.trendrr.cheshire.client.CheshireCli
 	
 	protected boolean keepalive = false;
 	
-	protected Date lastSuccessfulPing = new Date();
 	
 	protected Timer timer = null; //timer for keepalive pings
+	
+	protected AtomicBoolean isClosed = new AtomicBoolean(true);
 	
 	public synchronized boolean isKeepalive() {
 		return keepalive;
 	}
 	
-	/**
-	 * the date of the last successful ping.  could be null
-	 * @return
-	 */
-	public Date getLastSuccessfulPing() {
-		return lastSuccessfulPing;
-	}
 	
-	public synchronized void setLastSuccessfullPing(Date d) {
-		this.lastSuccessfulPing = d;
-	}
 	
 	/**
 	 * setting this to true will keep the connection open.  
@@ -128,15 +120,8 @@ public class CheshireNettyClient extends com.trendrr.cheshire.client.CheshireCli
 		super(host, port);
 	}
 	
-	
-	/**
-	 * Does a synchronous ping.  will throw an exception.  This method will *NOT* trigger a reconnect attempt. 
-	 * @throws Exception
-	 */
-	@Override
-	public void ping() throws TrendrrException {
-		super.ping();
-		this.setLastSuccessfullPing(new Date());
+	public boolean isClosed() {
+		return this.isClosed.get();
 	}
 	
 	void incoming(StrestResponse response) {
@@ -251,10 +236,15 @@ public class CheshireNettyClient extends com.trendrr.cheshire.client.CheshireCli
 	    	throw toTrendrrException(future.getCause());
 	    }
 	    if (this.channel != null) {
-	    	this.close();
+	    	try {
+	    		this.close();
+	    	} catch (Exception x) {
+	    		log.warn("Caught", x);
+	    	}
 	    }
 	    this.channel = future.getChannel();
 	    this.channel.setAttachment(this);
+	    this.isClosed.set(false);
 	}
 	
 	
@@ -288,13 +278,18 @@ public class CheshireNettyClient extends com.trendrr.cheshire.client.CheshireCli
 	 * closes this connection
 	 */
 	public void close() {
+		if (this.isClosed())
+			return;
+		this.isClosed.set(true);
 		try {
 			if (this.channel != null) {
 				this.channel.close().awaitUninterruptibly(10, TimeUnit.SECONDS);
+				this.channel = null;
 			}
 		} catch (Exception x) {
 			log.error("Close Exception", x);
 		}
+		
 	}
 	
 
