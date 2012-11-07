@@ -45,6 +45,9 @@ public abstract class CheshireClient implements CheshireApiCaller {
 	
 	protected String pingEndpoint = "/ping";
 	
+	protected Date lastSuccessfulPing = new Date();
+	protected int defaultPingTimeoutSeconds = 30;
+	
 	public CheshireClient(String host, int port) {
 		this.host = host;
 		this.port = port;
@@ -131,7 +134,8 @@ public abstract class CheshireClient implements CheshireApiCaller {
 	 * @throws Exception
 	 */
 	public void ping() throws TrendrrException {
-		this.apiCall(this.pingEndpoint, Verb.GET, null, 5*1000);
+		this.apiCall(this.pingEndpoint, Verb.GET, null, this.defaultPingTimeoutSeconds*1000);
+		this.setLastSuccessfullPing(new Date());
 	}
 	
 	public static TrendrrException toTrendrrException(Throwable t) {
@@ -169,5 +173,18 @@ public abstract class CheshireClient implements CheshireApiCaller {
 			return new TrendrrException((Exception)t);
 		}
 		return new TrendrrException(new Exception(t));
+	}
+	
+	/**
+	 * the date of the last successful ping.  could be null
+	 * @return
+	 */
+	public Date getLastSuccessfulPing() {
+		log.warn("LAST SUCCESSFUL PING: " + this.lastSuccessfulPing);
+		return lastSuccessfulPing;
+	}
+	
+	public synchronized void setLastSuccessfullPing(Date d) {
+		this.lastSuccessfulPing = d;
 	}
 }
