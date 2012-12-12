@@ -180,7 +180,6 @@ public abstract class CheshireClient implements CheshireApiCaller {
 	 * @return
 	 */
 	public Date getLastSuccessfulPing() {
-		log.warn("LAST SUCCESSFUL PING: " + this.lastSuccessfulPing);
 		return lastSuccessfulPing;
 	}
 	
