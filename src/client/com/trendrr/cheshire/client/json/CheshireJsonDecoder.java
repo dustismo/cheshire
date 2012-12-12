@@ -36,7 +36,7 @@ public class CheshireJsonDecoder extends DelimiterBasedFrameDecoder {
 	JSONStreamParser parser = new JSONStreamParser();
 
 	public CheshireJsonDecoder() {
-		super((int)FileHelper.megsToBytes(1),  
+		super((int)FileHelper.megsToBytes(2),  
 				false,
 				ChannelBuffers.wrappedBuffer(new byte[] { '}' }));
 	}
