@@ -167,7 +167,7 @@ public class AuthToken{
 		this.routesAllowed = routesAllowed;
 	}
 
-	public void addRoutesDisallowed(Collection<String> routesDisllowed) {
+	public void addRoutesDisallowed(Collection<String> routesDisallowed) {
 		if (routesDisallowed == null)
 			return;
 		this.getRoutesDisallowed().addAll(routesDisallowed);
