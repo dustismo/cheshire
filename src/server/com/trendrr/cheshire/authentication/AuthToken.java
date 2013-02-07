@@ -3,6 +3,7 @@
  */
 package com.trendrr.cheshire.authentication;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -40,6 +41,7 @@ public class AuthToken{
 	protected Set<String> routesDisallowed = new HashSet<String>();
 	protected String userId = null;
 	protected Set<String> userAccessRoles = new HashSet<String>();
+	protected Collection<String> availableIndexes = new ArrayList<String>();
 	protected Integer rateLimit = null;
 	protected boolean saveInConnection = true;
 	protected boolean isAuthenticated = false;
@@ -90,12 +92,14 @@ public class AuthToken{
 			Collection<String> routesDisallowed,
 			String userId,
 			Collection<String> userAccessRoles,
+			Collection<String> availableIndexes,
 			boolean saveInConnection,
 			boolean authenticated
 			) {
 		this.routesAllowed.addAll(routesAllowed);
 		this.routesDisallowed.addAll(routesDisallowed);
 		this.userAccessRoles.addAll(userAccessRoles);
+		this.availableIndexes.addAll(availableIndexes);
 		this.setUserId(userId);
 		this.setSaveInConnection(saveInConnection);
 		this.setAuthenticated(authenticated);
@@ -114,6 +118,7 @@ public class AuthToken{
 		mp.put("routes_allowed", this.getRoutesAllowed());
 		mp.put("routes_disallowed", this.getRoutesDisallowed());
 		mp.put("user_access_roles", this.getUserAccessRoles());
+		mp.put("available_indexes", this.getAvailableIndexes());
 		mp.put("save_in_connection", this.isSaveInConnection());
 		mp.put("authenticated", this.isAuthenticated());
 		return mp;
@@ -127,11 +132,19 @@ public class AuthToken{
 		this.routesAllowed.addAll(mp.getListOrEmpty(String.class, "routes_allowed"));
 		this.routesDisallowed.addAll(mp.getListOrEmpty(String.class, "routes_disallowed"));
 		this.userAccessRoles.addAll(mp.getListOrEmpty(String.class, "user_access_roles"));
+		this.availableIndexes.addAll(mp.getListOrEmpty(String.class, "available_indexes"));
 		this.setUserId(mp.getString("user_id"));
 		this.setSaveInConnection(mp.getBoolean("save_in_connection", true));
 		this.setAuthenticated(mp.getBoolean("authenticated", false));
 	}
 
+	public Collection<String> getAvailableIndexes() {
+		return this.availableIndexes;
+	}
+	
+	public void setAvailableIndexes(Collection<String> indexes) {
+		this.availableIndexes = indexes;
+	}
 	
 	public Set<String> getUserAccessRoles() {
 		return userAccessRoles;
