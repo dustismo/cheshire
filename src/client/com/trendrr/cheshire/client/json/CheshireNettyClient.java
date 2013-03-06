@@ -40,6 +40,7 @@ import com.trendrr.cheshire.client.CheshireListenableFuture;
 import com.trendrr.oss.DynMap;
 import com.trendrr.oss.concurrent.LazyInit;
 import com.trendrr.oss.concurrent.LazyInitObject;
+import com.trendrr.oss.concurrent.TrendrrLock;
 import com.trendrr.oss.exceptions.TrendrrDisconnectedException;
 import com.trendrr.oss.exceptions.TrendrrException;
 import com.trendrr.oss.exceptions.TrendrrTimeoutException;
@@ -67,10 +68,11 @@ public class CheshireNettyClient extends com.trendrr.cheshire.client.CheshireCli
 	
 	protected boolean keepalive = false;
 	
-	
 	protected Timer timer = null; //timer for keepalive pings
 	
 	protected AtomicBoolean isClosed = new AtomicBoolean(true);
+	
+	protected AtomicLong lastConnectAttempt = new AtomicLong(0l);
 	
 	public synchronized boolean isKeepalive() {
 		return keepalive;
@@ -227,7 +229,13 @@ public class CheshireNettyClient extends com.trendrr.cheshire.client.CheshireCli
 				bootstrapLock.end();
 			}
 		}
-	    //TODO: handle connection pooling
+	    
+		if (this.lastConnectAttempt.get() > new Date().getTime()-2000) {
+			log.warn("Already tried connecting within past 2 seconds");
+			return;
+		}
+			
+		//TODO: handle connection pooling
 	    ChannelFuture future = bootstrap.connect(new InetSocketAddress(host,
                 port));
 	    future.awaitUninterruptibly(40000);
@@ -247,13 +255,28 @@ public class CheshireNettyClient extends com.trendrr.cheshire.client.CheshireCli
 	    this.isClosed.set(false);
 	}
 	
-	
+	protected TrendrrLock lock = new TrendrrLock();
 	
 	@Override	
 	public CheshireListenableFuture apiCall(StrestRequest req) {
 		String txnId = this.txnId();
 		req.setTxnId(txnId);
 		
+		if (channel == null || !channel.isConnected()) {
+			lock.lockOrWait();
+			try {
+				if (channel == null || !channel.isConnected()) {
+					//attempt reconnect
+					try {
+						this.connect();
+					} catch (TrendrrException e) {
+						log.error("Caught", e);
+					}
+				}
+			} finally {
+				lock.unlock();
+			}
+		}
 		final CheshireListenableFuture sf = new CheshireListenableFuture(workerThreadpool);
 		this.futures.put(txnId, sf);
 		if (this.channel == null) {
