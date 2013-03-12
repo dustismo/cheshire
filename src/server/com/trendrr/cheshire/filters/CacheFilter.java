@@ -96,7 +96,7 @@ public class CacheFilter extends CheshireFilter {
 		
 		TrendrrCacheItem content = this.cacheLoad(cache, key);
 //		log.warn("Attempted cache load in : " + (new Date().getTime()-start.getTime()));
-		if (content == null) {
+		if (content == null || content.getMetadata() == null || content.getContentBytes() == null) {
 			controller.getTxnStorage().put("cache_key", key);
 			//need to execute the controller and then save.
 			controller.getAccessLog().put("cached", false);
