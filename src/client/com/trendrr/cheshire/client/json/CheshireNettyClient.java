@@ -106,6 +106,15 @@ public class CheshireNettyClient extends com.trendrr.cheshire.client.CheshireCli
 						} catch (Exception e) {
 							
 						}
+					} catch (com.trendrr.oss.exceptions.TrendrrTimeoutException x) {
+						//timed out.  reconnect.
+						//make one reconnect attempt. 
+						try {
+							self.connect();
+						} catch (Exception e) {
+							
+						}
+						
 					} catch (TrendrrException x) {
 						log.error("Caught", x);
 					}
