@@ -93,7 +93,7 @@ public class CheshirePooledClient implements CheshireApiCaller {
 		}
 	}
 	
-	protected Client nextClient() throws TrendrrException {
+	protected Client nextClient(boolean tryNext) throws TrendrrException {
 		if (this.poolsize < 1) {
 			throw new TrendrrException("Bad poolsize");
 		}
@@ -102,11 +102,15 @@ public class CheshirePooledClient implements CheshireApiCaller {
 		}
 		
 		int index = (int)(this.checkout.incrementAndGet() % this.poolsize);
+		
+//		System.out.println("GETTIGN CLIENT: " + index);
 		Client c = clients[index];
 		if (c.lock.start()) {			
 			//need to initialize
 			try {
+//				System.out.println("initializing client : " + index);
 				if (c.client != null) {
+//					System.out.println("REINIT!");
 					c.client.close();
 				}
 				if (this.closed.get()) {
@@ -119,6 +123,14 @@ public class CheshirePooledClient implements CheshireApiCaller {
 				c.lock.end();
 			}
 		}
+		
+		if (c.client == null) {
+			c.refresh();
+			if (tryNext) {
+				return this.nextClient(false);
+			}
+		}
+		
 		return c;
 	}
 	
@@ -130,7 +142,7 @@ public class CheshirePooledClient implements CheshireApiCaller {
 	public void apiCall(String uri, Verb verb, Map params,
 			CheshireApiCallback callback) {
 		try {
-			Client c = this.nextClient();
+			Client c = this.nextClient(true);
 			Callback cb = new Callback();
 			cb.callback = callback;
 			cb.client = c;
@@ -148,13 +160,13 @@ public class CheshirePooledClient implements CheshireApiCaller {
 	@Override
 	public DynMap apiCall(String uri, Verb verb, Map params, long timeoutMillis)
 			throws TrendrrTimeoutException, TrendrrException {
-		Client c = this.nextClient();
+		Client c = this.nextClient(true);
 		try {
 			return c.client.apiCall(uri, verb, params, timeoutMillis);
 		} catch (TrendrrDisconnectedException x) {
 			c.refresh();
 			//retry it..
-			c = this.nextClient();
+			c = this.nextClient(false);
 			return c.client.apiCall(uri, verb, params, timeoutMillis);
 		}
 	}
