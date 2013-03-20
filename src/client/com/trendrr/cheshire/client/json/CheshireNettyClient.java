@@ -81,7 +81,9 @@ public class CheshireNettyClient extends com.trendrr.cheshire.client.CheshireCli
 	
 	
 	/**
-	 * setting this to true will keep the connection open.  
+	 * setting this to true will keep the connection open.  and send ping messages every 10-20 seconds.
+	 * 
+	 * is true by default.
 	 * 
 	 * @param keepalive
 	 */
@@ -262,6 +264,7 @@ public class CheshireNettyClient extends com.trendrr.cheshire.client.CheshireCli
 	    this.channel = future.getChannel();
 	    this.channel.setAttachment(this);
 	    this.isClosed.set(false);
+	    this.setKeepalive(true);
 	}
 	
 	protected TrendrrLock lock = new TrendrrLock();
