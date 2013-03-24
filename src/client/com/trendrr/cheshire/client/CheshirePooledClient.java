@@ -19,6 +19,7 @@ import com.trendrr.oss.exceptions.TrendrrTimeoutException;
 import com.trendrr.oss.strest.cheshire.CheshireApiCallback;
 import com.trendrr.oss.strest.cheshire.CheshireApiCaller;
 import com.trendrr.oss.strest.cheshire.Verb;
+import com.trendrr.oss.strest.models.StrestRequest;
 
 
 /**
@@ -34,18 +35,16 @@ import com.trendrr.oss.strest.cheshire.Verb;
  * @created Mar 19, 2013
  * 
  */
-public class CheshirePooledClient implements CheshireApiCaller {
+public class CheshirePooledClient extends CheshireClient {
 
 	protected static Log log = LogFactory.getLog(CheshirePooledClient.class);
 
-	String host;
-	int port;
-	int poolsize;
-	AtomicLong checkout = new AtomicLong(0l);
+	private int poolsize;
+	private AtomicLong checkout = new AtomicLong(0l);
 	
-	Client[] clients;
+	private Client[] clients;
 	
-	AtomicBoolean closed = new AtomicBoolean(false);
+	private AtomicBoolean closed = new AtomicBoolean(false);
 	
 	class Client {
 		LazyInit lock = new LazyInit();
@@ -83,9 +82,8 @@ public class CheshirePooledClient implements CheshireApiCaller {
 	
 	
 	
-	public CheshirePooledClient (String host, int port, int poolsize) {
-		this.host = host;
-		this.port = port;
+	public CheshirePooledClient(String host, int port, int poolsize) {
+		super(host, port);
 		this.poolsize = poolsize;
 		clients = new Client[poolsize];
 		for (int i=0; i < poolsize; i++) {
@@ -185,18 +183,17 @@ public class CheshirePooledClient implements CheshireApiCaller {
 	}
 
 	/* (non-Javadoc)
-	 * @see com.trendrr.oss.strest.cheshire.CheshireApiCaller#getHost()
+	 * @see com.trendrr.cheshire.client.CheshireClient#apiCall(com.trendrr.oss.strest.models.StrestRequest)
 	 */
 	@Override
-	public String getHost() {
-		return this.host;
-	}
-
-	/* (non-Javadoc)
-	 * @see com.trendrr.oss.strest.cheshire.CheshireApiCaller#getPort()
-	 */
-	@Override
-	public int getPort() {
-		return this.port;
+	public CheshireListenableFuture apiCall(StrestRequest req) {
+		try {
+			Client c = this.nextClient(true);
+			return c.client.apiCall(req);
+		} catch (Exception x) {
+			CheshireListenableFuture sf = new CheshireListenableFuture(null);
+			sf.setException(x);
+			return sf;
+		}
 	}
 }
