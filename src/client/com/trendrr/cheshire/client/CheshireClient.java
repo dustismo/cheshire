@@ -113,6 +113,10 @@ public abstract class CheshireClient implements CheshireApiCaller {
 		return this.port;
 	}
 	
+	void cancelFuture(CheshireListenableFuture fut) {
+		//override in subclass if needed
+	}
+	
 	protected StrestRequest createRequest(String endPoint, Verb method, Map params) {
 		StrestJsonRequest request = new StrestJsonRequest();
 		request.setUri(endPoint);
