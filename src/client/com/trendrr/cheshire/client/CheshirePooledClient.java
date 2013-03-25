@@ -28,7 +28,8 @@ import com.trendrr.oss.strest.models.StrestRequest;
  * Use this for highest throughput.  The pool is used in a roundrobin, since the client does not need to 
  * wait for a response.
  * 
- * Disconnections will propogate to the end user, but the underlying connection will automatically be reconnected.
+ * Disconnections will propogate to the callback when using the async api calls, 
+ * but the underlying connection will automatically be reconnected.
  * 
  * 
  * @author Dustin Norlander
@@ -91,7 +92,11 @@ public class CheshirePooledClient extends CheshireClient {
 		}
 	}
 	
-	protected Client nextClient(boolean tryNext) throws TrendrrException {
+	public void connect() {
+		//do nothing..  just for compat with netty client method sigs.
+	}
+	
+	protected Client nextClient(int maxTries) throws TrendrrException {
 		if (this.poolsize < 1) {
 			throw new TrendrrException("Bad poolsize");
 		}
@@ -106,7 +111,7 @@ public class CheshirePooledClient extends CheshireClient {
 		if (c.lock.start()) {			
 			//need to initialize
 			try {
-//				System.out.println("initializing client : " + index);
+				System.out.println("initializing client : " + index);
 				if (c.client != null) {
 //					System.out.println("REINIT!");
 					c.client.close();
@@ -122,10 +127,10 @@ public class CheshirePooledClient extends CheshireClient {
 			}
 		}
 		
-		if (c.client == null) {
+		if (c.client == null || c.client.isClosed()) {
 			c.refresh();
-			if (tryNext) {
-				return this.nextClient(false);
+			if (maxTries >0) {
+				return this.nextClient(maxTries-1);
 			}
 		}
 		
@@ -140,7 +145,7 @@ public class CheshirePooledClient extends CheshireClient {
 	public void apiCall(String uri, Verb verb, Map params,
 			CheshireApiCallback callback) {
 		try {
-			Client c = this.nextClient(true);
+			Client c = this.nextClient(this.poolsize);
 			Callback cb = new Callback();
 			cb.callback = callback;
 			cb.client = c;
@@ -158,13 +163,14 @@ public class CheshirePooledClient extends CheshireClient {
 	@Override
 	public DynMap apiCall(String uri, Verb verb, Map params, long timeoutMillis)
 			throws TrendrrTimeoutException, TrendrrException {
-		Client c = this.nextClient(true);
+		Client c = this.nextClient(this.poolsize);
 		try {
 			return c.client.apiCall(uri, verb, params, timeoutMillis);
 		} catch (TrendrrDisconnectedException x) {
 			c.refresh();
 			//retry it..
-			c = this.nextClient(false);
+			System.out.println("RETRYIGN!!!!");
+			c = this.nextClient(this.poolsize);
 			return c.client.apiCall(uri, verb, params, timeoutMillis);
 		}
 	}
@@ -188,7 +194,7 @@ public class CheshirePooledClient extends CheshireClient {
 	@Override
 	public CheshireListenableFuture apiCall(StrestRequest req) {
 		try {
-			Client c = this.nextClient(true);
+			Client c = this.nextClient(this.poolsize);
 			return c.client.apiCall(req);
 		} catch (Exception x) {
 			CheshireListenableFuture sf = new CheshireListenableFuture(null);
