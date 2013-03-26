@@ -30,6 +30,8 @@ import com.trendrr.oss.cache.TrendrrCache;
 import com.trendrr.oss.cache.TrendrrCacheStore;
 import com.trendrr.oss.concurrent.Initializer;
 import com.trendrr.oss.concurrent.LazyInit;
+import com.trendrr.oss.exceptions.TrendrrException;
+import com.trendrr.oss.exceptions.TrendrrTimeoutException;
 import com.trendrr.strest.StrestException;
 import com.trendrr.strest.StrestHttpException;
 import com.trendrr.strest.server.StrestController;
@@ -111,7 +113,14 @@ public class SessionFilter extends CheshireFilter {
 
         if (sessionId != null) {
         	//load the session.
-        	DynMap vals = DynMap.instance(this.getSessionPersistence(controller).get(sessionId));
+        	DynMap vals = null;
+			try {
+				vals = DynMap.instance(this.getSessionPersistence(controller).get(sessionId));
+			} catch (TrendrrTimeoutException e1) {
+				log.error("Caught", e1);
+			} catch (TrendrrException e1) {
+				log.error("Caught", e1);
+			}
 //        	if (vals != null)
 //        		log.warn("GOT SESSION! " + vals.toJSONString());
 //        	else
@@ -171,7 +180,13 @@ public class SessionFilter extends CheshireFilter {
 			cookie.setMaxAge(0);
 			cookieEncoder.addCookie(cookie);
 	        controller.getResponse().addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
-	        this.getSessionPersistence(controller).delete(sessionId);
+	        try {
+				this.getSessionPersistence(controller).delete(sessionId);
+			} catch (TrendrrTimeoutException e) {
+				log.error("Caught", e);
+			} catch (TrendrrException e) {
+				log.error("Caught", e);
+			}
 			return;
 		}
 		
@@ -194,7 +209,13 @@ public class SessionFilter extends CheshireFilter {
 		Date expires = new Date(new Date().getTime()+(1000*this.maxAge));
 		((CheshireHTMLController)controller).getSessionStorage().put("expires", IsoDateUtil.getIsoDate(expires));
 		if (sessionId != null) {
-			this.getSessionPersistence(controller).set(sessionId, ((CheshireHTMLController)controller).getSessionStorage().toJSONString(), expires);
+			try {
+				this.getSessionPersistence(controller).set(sessionId, ((CheshireHTMLController)controller).getSessionStorage().toJSONString(), expires);
+			} catch (TrendrrTimeoutException e) {
+				log.error("Caught", e);
+			} catch (TrendrrException e) {
+				log.error("Caught", e);
+			}
 		}
 	}
 

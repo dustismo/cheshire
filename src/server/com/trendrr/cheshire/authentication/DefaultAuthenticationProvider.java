@@ -39,11 +39,10 @@ public abstract class DefaultAuthenticationProvider implements AuthenticationPro
 	 * @return
 	 */
 	public AuthToken getFromCache(CheshireController controller, String key) {
-		Object obj = this.getCache(controller).get("auth_tokens", key);
-		if (obj == null)
-			return null;
-		
 		try {
+			Object obj = this.getCache(controller).get("auth_tokens", key);
+			if (obj == null)
+				return null;
 			TrendrrCacheItem item = TrendrrCacheItem.deserialize((byte[])obj);
 			String cls = item.getMetadata().getString("auth_token_class");
 			DynMap content = DynMap.instance(new String(item.getContentBytes(), "utf8"));

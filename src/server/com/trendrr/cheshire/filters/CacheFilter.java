@@ -18,7 +18,9 @@ import com.trendrr.oss.Timeframe;
 import com.trendrr.oss.cache.TrendrrCache;
 import com.trendrr.oss.cache.TrendrrCacheItem;
 import com.trendrr.oss.concurrent.Sleep;
+import com.trendrr.oss.exceptions.TrendrrException;
 import com.trendrr.oss.exceptions.TrendrrParseException;
+import com.trendrr.oss.exceptions.TrendrrTimeoutException;
 import com.trendrr.strest.StrestException;
 import com.trendrr.strest.server.v2.models.StrestHeader.Method;
 import com.trendrr.strest.server.v2.models.StrestResponse;
@@ -101,7 +103,11 @@ public class CacheFilter extends CheshireFilter {
 			//need to execute the controller and then save.
 			controller.getAccessLog().put("cached", false);
 		} else {
-			controller.setResponseBytes(content.getMetadata().getString("mime"), content.getContentBytes());
+//			log.warn("content: " + content);
+//			log.warn("meta: " + content.getMetadata());
+//			log.warn("bytes:" + content.getContentBytes());
+			
+			controller.setResponseBytes(content.getMetadata().getString("mime", "application/json"), content.getContentBytes());
 			controller.setResponseStatus(content.getMetadata().getInteger("sts"), content.getMetadata().getString("sts_msg"));
 			controller.setSkipExecution(true);
 			controller.getAccessLog().put("cached", true);
@@ -140,7 +146,13 @@ public class CacheFilter extends CheshireFilter {
 		TrendrrCacheItem c = TrendrrCacheItem.instance(meta, res.getContentBytes());
 		Date contentexpire = Timeframe.SECONDS.add(new Date(), timeout);
 //		log.warn("Setting cache for key: " + key + " " + meta.toJSONString());
-		cache.set("cheshire.cache", key, c.serialize(), contentexpire);
+		try {
+			cache.set("cheshire.cache", key, c.serialize(), contentexpire);
+		} catch (TrendrrTimeoutException e) {
+			log.error("Caught", e);
+		} catch (TrendrrException e) {
+			log.error("Caught", e);
+		}
 	}
 	
 
@@ -209,7 +221,11 @@ public class CacheFilter extends CheshireFilter {
 		} catch (TrendrrParseException e) {
 			log.warn("POISON CACHE! : " + key, e);
 			return null; //we will reset the cache.
-		}
+		} catch (TrendrrTimeoutException e) {
+			log.error("Caught", e);
+		} catch (TrendrrException e) {
+			log.error("Caught", e);
+		} 
 		throw new StrestException("CACHE ERROR! Big problem with the cache, unable to get data in 2 minutes for key: " + key);
 	}
 	

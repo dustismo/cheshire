@@ -24,7 +24,9 @@ import com.trendrr.oss.TimeAmount;
 import com.trendrr.oss.Timeframe;
 import com.trendrr.oss.TypeCast;
 import com.trendrr.oss.cache.TrendrrCache;
+import com.trendrr.oss.exceptions.TrendrrException;
 import com.trendrr.oss.exceptions.TrendrrParseException;
+import com.trendrr.oss.exceptions.TrendrrTimeoutException;
 
 
 /**
@@ -91,6 +93,12 @@ public class RateLimiter implements RemovalListener<String, AtomicInteger>{
 	@Override
 	public void onRemoval(RemovalNotification<String, AtomicInteger> removal) {
 		/* we keep in long term for 60 X*/
-		this.longTermCache.inc("rate_limits", removal.getKey(), removal.getValue().get(), this.timeamount.add(new Date(), 60));
+		try {
+			this.longTermCache.inc("rate_limits", removal.getKey(), removal.getValue().get(), this.timeamount.add(new Date(), 60));
+		} catch (TrendrrTimeoutException e) {
+			log.error("Caught", e);
+		} catch (TrendrrException e) {
+			log.error("Caught", e);
+		}
 	}
 }
