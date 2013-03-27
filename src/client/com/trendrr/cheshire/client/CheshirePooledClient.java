@@ -149,7 +149,7 @@ public class CheshirePooledClient extends CheshireClient {
 			Callback cb = new Callback();
 			cb.callback = callback;
 			cb.client = c;
-			c.client.apiCall(uri, verb, params, callback);
+			c.client.apiCall(uri, verb, params, cb);
 		} catch (Exception x) {
 			callback.error(x);
 		}
