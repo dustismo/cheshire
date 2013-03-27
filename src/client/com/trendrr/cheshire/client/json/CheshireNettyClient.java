@@ -85,8 +85,14 @@ public class CheshireNettyClient extends com.trendrr.cheshire.client.CheshireCli
 	//The max number of requests allowed to be waiting on return values.
 	protected int MAX_INFLIGHT = 500;
 	
-	protected ReentrantReadWriteLock connectionLock = new ReentrantReadWriteLock();
+	/**
+	 * how long to wait when max inflight reached.
+	 */
+	protected int MAX_INFLIGHT_WAIT_SECONDS = 30;
 	
+	public static interface OnDisconnect  {
+		public void disconnected(CheshireNettyClient c);
+	}
 	
 	public synchronized boolean isKeepalive() {
 		return keepalive;
@@ -114,21 +120,9 @@ public class CheshireNettyClient extends com.trendrr.cheshire.client.CheshireCli
 					try {
 						self.ping();
 					} catch (TrendrrDisconnectedException x) {
-						//make one reconnect attempt. 
-//						try {
-//							self.connect();
-//						} catch (Exception e) {
-//							
-//						}
 						self.close();
 					} catch (com.trendrr.oss.exceptions.TrendrrTimeoutException x) {
-						//timed out.  reconnect.
-						//make one reconnect attempt. 
-//						try {
-//							self.connect();
-//						} catch (Exception e) {
-//							
-//						}
+						//timeount on a ping is baaad
 						self.close();
 					} catch (TrendrrException x) {
 						log.error("Caught", x);
@@ -200,188 +194,180 @@ public class CheshireNettyClient extends com.trendrr.cheshire.client.CheshireCli
 	}
 	
 	public synchronized void connect() throws TrendrrException {
-		this.connectionLock.writeLock().lock();
-		try {
-			
-			if (this.channel != null) {
-		    	try {
-		    		this.doClose();
-		    	} catch (Exception x) {
-		    		log.warn("Caught", x);
-		    	}
-		    }
-			
-			if (bootstrapLock.start()) {
-				try {
-					synchronized(threadpoolLock) {
-						if (ioThreadpool == null) {
-							ioThreadpool = Executors.newCachedThreadPool();
-						}
-						if (workerThreadpool == null) {
-							
-							workerThreadpool = new ThreadPoolExecutor(
-									1, // core size
-								    50, // max size
-								    60, // idle timeout
-								    TimeUnit.SECONDS,
-								    new SynchronousQueue<Runnable>(), // queue with a size
-								    new ThreadPoolExecutor.CallerRunsPolicy() //if queue is full run in current thread.
-							);
-						}
-						
-						
-						
-						ChannelFactory factory = new NioClientSocketChannelFactory(ioThreadpool, workerThreadpool);
-					    final CheshireClientIncomingHandler handler = new CheshireClientIncomingHandler();
-						
-						ChannelPipelineFactory pipeline = new ChannelPipelineFactory() {
-				            public ChannelPipeline getPipeline() throws Exception {
-				            	 // Create a default pipeline implementation.
-				                ChannelPipeline pipeline = pipeline();
-				                
-				        		pipeline.addLast("decoder", new CheshireJsonDecoder());
-				                pipeline.addLast("encoder", new CheshireJsonEncoder());
-				                pipeline.addLast("handler", handler);
-				                return pipeline;
-				            }
-				        };
-				
-					    bootstrap = new ClientBootstrap(factory);
-					    
-					    // At client side option is tcpNoDelay and at server child.tcpNoDelay
-					    bootstrap.setOption("tcpNoDelay", true);
-					    bootstrap.setOption("keepAlive", true);
-					    bootstrap.setOption("connectTimeoutMillis", 30000);
-					    bootstrap.setPipelineFactory(pipeline);
+		if (this.channel != null) {
+	    	try {
+	    		this.close();
+	    	} catch (Exception x) {
+	    		log.warn("Caught", x);
+	    	}
+	    }
+		if (bootstrapLock.start()) {
+			try {
+				synchronized(threadpoolLock) {
+					if (ioThreadpool == null) {
+						ioThreadpool = Executors.newCachedThreadPool();
 					}
-				} finally {
-					bootstrapLock.end();
+					if (workerThreadpool == null) {
+						
+						workerThreadpool = new ThreadPoolExecutor(
+								1, // core size
+							    50, // max size
+							    60, // idle timeout
+							    TimeUnit.SECONDS,
+							    new SynchronousQueue<Runnable>(), // queue with a size
+							    new ThreadPoolExecutor.CallerRunsPolicy() //if queue is full run in current thread.
+						);
+					}
+					
+					
+					
+					ChannelFactory factory = new NioClientSocketChannelFactory(ioThreadpool, workerThreadpool);
+				    final CheshireClientIncomingHandler handler = new CheshireClientIncomingHandler();
+					
+					ChannelPipelineFactory pipeline = new ChannelPipelineFactory() {
+			            public ChannelPipeline getPipeline() throws Exception {
+			            	 // Create a default pipeline implementation.
+			                ChannelPipeline pipeline = pipeline();
+			                
+			        		pipeline.addLast("decoder", new CheshireJsonDecoder());
+			                pipeline.addLast("encoder", new CheshireJsonEncoder());
+			                pipeline.addLast("handler", handler);
+			                return pipeline;
+			            }
+			        };
+			
+				    bootstrap = new ClientBootstrap(factory);
+				    
+				    // At client side option is tcpNoDelay and at server child.tcpNoDelay
+				    bootstrap.setOption("tcpNoDelay", true);
+				    bootstrap.setOption("keepAlive", true);
+				    bootstrap.setOption("connectTimeoutMillis", 30000);
+				    bootstrap.setPipelineFactory(pipeline);
 				}
+			} finally {
+				bootstrapLock.end();
 			}
-		    
-			if (this.lastConnectAttempt.get() > new Date().getTime()-2000) {
-				log.warn("Already tried connecting within past 2 seconds");
-				return;
-			}
-		    ChannelFuture future = bootstrap.connect(new InetSocketAddress(host,
-	                port));
-		    future.awaitUninterruptibly(40000);
-		    
-		    if (!future.isSuccess()) {
-		    	throw toTrendrrException(future.getCause());
-		    }
-		    
-		    this.channel = future.getChannel();
-		    this.channel.setAttachment(this);
-		    this.isClosed.set(false);
-		    this.setKeepalive(true);
-		} finally {
-			this.connectionLock.writeLock().unlock();
 		}
+	    
+		if (this.lastConnectAttempt.get() > new Date().getTime()-2000) {
+			log.warn("Already tried connecting within past 2 seconds");
+			return;
+		}
+	    ChannelFuture future = bootstrap.connect(new InetSocketAddress(host,
+                port));
+	    future.awaitUninterruptibly(40000);
+	    
+	    if (!future.isSuccess()) {
+	    	throw toTrendrrException(future.getCause());
+	    }
+	    
+	    this.channel = future.getChannel();
+	    this.channel.setAttachment(this);
+	    this.isClosed.set(false);
+	    this.setKeepalive(true);
 	}
-	
-//	protected TrendrrLock lock = new TrendrrLock();
 	
 	
 	@Override	
 	public CheshireListenableFuture apiCall(StrestRequest req) {
-		this.connectionLock.readLock().lock();
-		try {
-			String txnId = this.txnId();
-			req.setTxnId(txnId);
-			final CheshireListenableFuture sf = new CheshireListenableFuture(workerThreadpool);
+		String txnId = this.txnId();
+		req.setTxnId(txnId);
+		final CheshireListenableFuture sf = new CheshireListenableFuture(workerThreadpool);
+		
+		//let pings slip through the max inflight
+		if (!req.getUri().equals(this.pingEndpoint)) {
 			
 			int i=0;
-			while(i < 30 && this.futures.size() >= this.MAX_INFLIGHT) {
+			while(i < this.MAX_INFLIGHT_WAIT_SECONDS && this.futures.size() >= this.MAX_INFLIGHT) {
 				if (i % 10 == 0 && i != 0) {
 					log.warn("Max INFLIGHT reached (" + this.MAX_INFLIGHT +") waiting one second");
 				}
 				Sleep.seconds(1);
 				i++;
 			}
-			if (i == 30) {
-				log.error("Waited 30 seconds for inflight to go down. no luck.  WTF?");
-				sf.setException(new TrendrrDisconnectedException("Waited 30 seconds for inflight to go down. no luck.  WTF?"));
+			if (i >= this.MAX_INFLIGHT_WAIT_SECONDS) {
+				log.error("Waited " + this.MAX_INFLIGHT_WAIT_SECONDS + " seconds for inflight to go down. no luck.  WTF?");
+				sf.setException(new TrendrrDisconnectedException("Waited " + this.MAX_INFLIGHT_WAIT_SECONDS + " seconds for inflight to go down. no luck.  WTF?"));
 				return sf;
 			}
-			
-			//make sure this connection is not closed
-			if (this.isClosed()) {
-				sf.setException(new TrendrrDisconnectedException("Connection is closed"));
-				return sf;
-			}
-			
-			this.futures.put(txnId, sf);
-			if (this.channel == null) {
-				sf.setException(new TrendrrDisconnectedException("Not Connected"));
-				return sf;
-			}
-			
-			
-			
-			ChannelFuture channelFuture = this.channel.write(req);
-	
-			channelFuture.addListener(new ChannelFutureListener() {
-				@Override
-				public void operationComplete(ChannelFuture future) throws Exception {
-					if (!future.isSuccess()) {
-						//set the exception..
-						sf.setException(toTrendrrException(future.getCause()));
-					}
-				}
-			}); 
-			
+		}
+		//make sure this connection is not closed
+		if (this.isClosed()) {
+			sf.setException(new TrendrrDisconnectedException("Connection is closed"));
 			return sf;
-		} finally {
-			this.connectionLock.readLock().unlock();
 		}
-	}
-	
-	private void doClose() {
-		if (this.isClosed())
-			return;
-		this.isClosed.set(true);
-		try {
-			if (this.channel != null) {
-				this.channel.close().awaitUninterruptibly(10, TimeUnit.SECONDS);
-				this.channel = null;
-			}
-		} catch (Exception x) {
-			log.error("Close Exception", x);
-		}
-		this.setKeepalive(false);
 		
-		//drain the futures in a threadsafe way.
-		while(!this.futures.isEmpty()) {
-			try {
-				String key = this.futures.keys().nextElement();
-				CheshireListenableFuture fut = this.futures.remove(key);
-				if (fut != null) {
-					fut.setException(new TrendrrDisconnectedException("Connection Broken"));
-				}	
-			} catch (NoSuchElementException x) {
-				
-			}
+		this.futures.put(txnId, sf);
+		if (this.channel == null || !this.channel.isConnected()) {
+			this.close();
+			sf.setException(new TrendrrDisconnectedException("Not Connected"));
+			return sf;
 		}
+		
+		
+		
+		ChannelFuture channelFuture = this.channel.write(req);
+
+		channelFuture.addListener(new ChannelFutureListener() {
+			@Override
+			public void operationComplete(ChannelFuture future) throws Exception {
+				if (!future.isSuccess()) {
+					Exception ex = toTrendrrException(future.getCause());
+					if (ex instanceof TrendrrDisconnectedException) {
+						close();
+					}
+					//set the exception..
+					sf.setException(ex);
+				}
+			}
+		}); 
+		
+		return sf;
 	}
+
+	private TrendrrLock closeLock = new TrendrrLock();
 	/**
 	 * closes this connection
 	 */
 	public void close() {
+		if (!closeLock.lockOrSkip()) {
+			return; //someone else is already closing this..
+		}
 		try {
-			this.connectionLock.writeLock().lock();
-			this.doClose();
+			if (this.isClosed() && this.futures.isEmpty()) {
+				//nothing to do.
+				return;
+			}
+			this.isClosed.set(true);
+			try {
+				if (this.channel != null) {
+					this.channel.close().awaitUninterruptibly(10, TimeUnit.SECONDS);
+					this.channel = null;
+				}
+			} catch (Exception x) {
+				log.error("Close Exception", x);
+			}
+			this.setKeepalive(false);
+			
+			//drain the futures in a threadsafe way.
+			while(!this.futures.isEmpty()) {
+				try {
+					String key = this.futures.keys().nextElement();
+					CheshireListenableFuture fut = this.futures.remove(key);
+					if (fut != null) {
+						fut.setException(new TrendrrDisconnectedException("Connection Broken"));
+					}	
+				} catch (NoSuchElementException x) {
+					
+				}
+			}
 		} finally {
-			this.connectionLock.writeLock().unlock();
+			closeLock.unlock();
 		}
 	}
-	
 
-	
 	static AtomicLong l = new AtomicLong(0l);
 	protected String txnId() {
 		return Long.toString(l.incrementAndGet());
 	}
-	
-	
 }
