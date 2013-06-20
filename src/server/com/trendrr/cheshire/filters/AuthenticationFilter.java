@@ -94,25 +94,19 @@ public class AuthenticationFilter extends CheshireFilter  {
 	public void before(CheshireController controller) throws StrestException {
 		
 		try {
-			AuthToken token = this.findAuthToken(controller);
-			
-			if (token == null) {
-				//we dont have a token in the connection or txn.
-				//now do the real checking.
-				//run through all the authentication providers until we find a match.
+			AuthToken token = null;
 				
-				for (AuthenticationProvider ap: this.getAuthProv(controller.getControllerNamespace(), controller)) {
-					if (token != null) {
-						continue;
-					}
-					token = ap.authenticate(controller);
+			for (AuthenticationProvider ap: this.getAuthProv(controller.getControllerNamespace(), controller)) {
+				if (token != null) {
+					continue;
 				}
-			}
-			if (token instanceof InvalidAuthToken) {
-				throw StrestHttpException.UNAUTHORIZED("Invalid authentication");
+				token = ap.authenticate(controller);
 			}
 			
 			if (token != null) {
+				if (token instanceof InvalidAuthToken) {
+					throw StrestHttpException.UNAUTHORIZED("Invalid authentication");
+				}
 				controller.setAuthToken(token);
 				log.info("Authenticated!" + token.toDynMap().toJSONString());
 			}
@@ -126,26 +120,26 @@ public class AuthenticationFilter extends CheshireFilter  {
 		}
 	}
 	
-	/**
-	 * looks in the session and connection for the auth token.
-	 * @return
-	 */
-	public static AuthToken findAuthToken(StrestController controller) throws Exception {
-		AuthToken token = null;
-		
-		//first check txn storage.
-		Object at = controller.getTxnStorage().get("auth_token");
-		if (at == null) {
-			//new check connection storage.
-			at = controller.getConnectionStorage().get("auth_token");
-		}
-		if (at != null) {
-			if (at instanceof AuthToken) {
-				token = (AuthToken)at;
-			} 
-		}
-		return token;
-	}
+//	/**
+//	 * looks in the session and connection for the auth token.
+//	 * @return
+//	 */
+//	public static AuthToken findAuthToken(StrestController controller) throws Exception {
+//		AuthToken token = null;
+//		
+//		//first check txn storage.
+//		Object at = controller.getTxnStorage().get("auth_token");
+//		if (at == null) {
+//			//new check connection storage.
+//			at = controller.getConnectionStorage().get("auth_token");
+//		}
+//		if (at != null) {
+//			if (at instanceof AuthToken) {
+//				token = (AuthToken)at;
+//			} 
+//		}
+//		return token;
+//	}
 	/* (non-Javadoc)
 	 * @see com.trendrr.strest.server.StrestControllerFilter#after(com.trendrr.strest.server.StrestController)
 	 */
