@@ -66,8 +66,12 @@ public abstract class CheshireClient implements CheshireApiCaller {
 	public void apiCall(String endPoint, Verb method, Map params, CheshireApiCallback callback) {
 		StrestRequest req = this.createRequest(endPoint, method, params);
 		req.setTxnAccept(TxnAccept.MULTI);
-		CheshireListenableFuture fut = this.apiCall(req);
-		fut.setCallback(callback);
+		try {
+			CheshireListenableFuture fut = this.apiCall(req);
+			fut.setCallback(callback);
+		} catch (Exception x) {
+			callback.error(x);
+		}
 		return;
 	}
 	
@@ -95,7 +99,7 @@ public abstract class CheshireClient implements CheshireApiCaller {
 		}
 	}
 
-	public abstract CheshireListenableFuture apiCall(StrestRequest req);
+	public abstract CheshireListenableFuture apiCall(StrestRequest req) throws TrendrrDisconnectedException;
 	
 	/* (non-Javadoc)
 	 * @see com.trendrr.oss.strest.cheshire.CheshireApiCaller#getHost()
