@@ -22,8 +22,8 @@ class Initializer extends ChannelInitializer<SocketChannel> {
 
 	protected static Log log = LogFactory.getLog(Initializer.class);
 
-	private static final CheshireJsonDecoder DECODER = new CheshireJsonDecoder();
-    private static final CheshireJsonEncoder ENCODER = new CheshireJsonEncoder();
+	private CheshireJsonDecoder DECODER = new CheshireJsonDecoder();
+    private CheshireJsonEncoder ENCODER = new CheshireJsonEncoder();
     
 	/* (non-Javadoc)
 	 * @see io.netty.channel.ChannelInitializer#initChannel(io.netty.channel.Channel)
