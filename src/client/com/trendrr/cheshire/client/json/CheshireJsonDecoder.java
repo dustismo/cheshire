@@ -29,6 +29,7 @@ import com.trendrr.oss.strest.models.json.StrestJsonResponse;
  * @created May 4, 2012
  * 
  */
+@Deprecated
 public class CheshireJsonDecoder extends DelimiterBasedFrameDecoder {
 
 	protected static Log log = LogFactory.getLog(CheshireJsonDecoder.class);

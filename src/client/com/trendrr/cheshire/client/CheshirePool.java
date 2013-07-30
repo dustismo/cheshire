@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.trendrr.cheshire.client.netty4;
+package com.trendrr.cheshire.client;
 
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -15,8 +15,8 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.trendrr.cheshire.client.CheshireClient;
-import com.trendrr.cheshire.client.CheshireListenableFuture;
+import com.trendrr.cheshire.client.netty4.CheshireNetty4Client;
+import com.trendrr.cheshire.client.netty4.CheshireNetty4Client.PROTOCOL;
 import com.trendrr.oss.DynMap;
 import com.trendrr.oss.Pool;
 import com.trendrr.oss.Pool.Creator;

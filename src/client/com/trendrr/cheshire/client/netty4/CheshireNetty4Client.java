@@ -15,11 +15,14 @@ import com.trendrr.oss.exceptions.TrendrrDisconnectedException;
 import com.trendrr.oss.exceptions.TrendrrException;
 import com.trendrr.oss.strest.cheshire.CheshireApiCallback;
 import com.trendrr.oss.strest.cheshire.Verb;
+import com.trendrr.oss.strest.models.DefaultStrestRequest;
 import com.trendrr.oss.strest.models.StrestHeader;
 import com.trendrr.oss.strest.models.StrestHello;
 import com.trendrr.oss.strest.models.StrestRequest;
 import com.trendrr.oss.strest.models.StrestResponse;
 import com.trendrr.oss.strest.models.StrestHeader.TxnStatus;
+import com.trendrr.oss.strest.models.json.StrestJsonRequest;
+import com.trendrr.strest.doc.StrestDocParser;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -122,6 +125,15 @@ public class CheshireNetty4Client extends com.trendrr.cheshire.client.CheshireCl
 	
 	
 	protected static Log log = LogFactory.getLog(CheshireNetty4Client.class);
+	
+	@Override
+	protected StrestRequest newRequest() {
+		if (this.protocol == PROTOCOL.JSON) {
+			return  new StrestJsonRequest();
+		} else {
+			return new DefaultStrestRequest();
+		}
+	}
 	
 	public void connect() throws Exception {
 		this.connect(new NioEventLoopGroup()); 

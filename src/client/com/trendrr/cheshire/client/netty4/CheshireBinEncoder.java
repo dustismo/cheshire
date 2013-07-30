@@ -62,9 +62,14 @@ public class CheshireBinEncoder extends MessageToByteEncoder<StrestRequest> {
 		} else {
 			BinaryHelper.writeString(out, "");
 		}
-		
-		out.writeByte(request.getContentEncoding().getBinary());
+		if (request.getContentEncoding() != null) {
+			out.writeByte(request.getContentEncoding().getBinary());
+		} else {
+			out.writeByte(StrestHeader.ContentEncoding.BYTES.getBinary());
+		}
 		out.writeInt(request.getContentLength());
-		out.writeBytes(request.getContent(), request.getContentLength());
+		if (request.getContentLength() > 0) {
+			out.writeBytes(request.getContent(), request.getContentLength());
+		}
 	}
 }

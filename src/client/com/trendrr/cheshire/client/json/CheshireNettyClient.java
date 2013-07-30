@@ -66,6 +66,7 @@ import com.trendrr.oss.strest.models.json.StrestJsonRequest;
  * @author Dustin Norlander
  * @created Oct 17, 2012
  * 
+ * @deprecated use the CheshireNetty4Client 
  */
 public class CheshireNettyClient extends com.trendrr.cheshire.client.CheshireClient{
 

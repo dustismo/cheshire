@@ -121,8 +121,12 @@ public abstract class CheshireClient implements CheshireApiCaller {
 		//override in subclass if needed
 	}
 	
+	protected StrestRequest newRequest() {
+		return  new StrestJsonRequest();
+	}
+	
 	protected StrestRequest createRequest(String endPoint, Verb method, Map params) {
-		StrestJsonRequest request = new StrestJsonRequest();
+		StrestRequest request = this.newRequest();
 		request.setUri(endPoint);
 		request.setMethod(Method.instance(method.toString())); //TODO:this is stuuupid
 		if (params != null) {

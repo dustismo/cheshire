@@ -22,6 +22,7 @@ import com.trendrr.oss.strest.models.json.StrestJsonRequest;
  * @created May 4, 2012
  * 
  */
+@Deprecated
 public class CheshireJsonEncoder extends SimpleChannelHandler {
 
 	protected static Log log = LogFactory.getLog(CheshireJsonEncoder.class);
