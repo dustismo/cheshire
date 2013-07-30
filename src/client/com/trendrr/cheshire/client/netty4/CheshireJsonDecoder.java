@@ -46,7 +46,6 @@ public class CheshireJsonDecoder extends DelimiterBasedFrameDecoder {
 	protected Object decode(ChannelHandlerContext ctx, ByteBuf buf) throws Exception {
 		
 		Object result = super.decode(ctx, buf);
-		System.out.println(result);
 		
 		while(result != null) {
 			

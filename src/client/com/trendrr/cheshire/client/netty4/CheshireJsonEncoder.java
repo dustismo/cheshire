@@ -25,9 +25,6 @@ public class CheshireJsonEncoder extends MessageToByteEncoder<StrestJsonRequest>
 
 	@Override 
 	public void encode(ChannelHandlerContext ctx, StrestJsonRequest request, ByteBuf out) throws Exception {
-		
-		System.out.println("Encoding: " + request);
-		out.writeBytes(request.toByteArray());
-		
+		out.writeBytes(request.getMap().toJSONString().getBytes("utf8"));	
 	}
 }

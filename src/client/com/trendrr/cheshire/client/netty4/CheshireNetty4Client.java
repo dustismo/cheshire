@@ -15,6 +15,8 @@ import com.trendrr.oss.exceptions.TrendrrDisconnectedException;
 import com.trendrr.oss.exceptions.TrendrrException;
 import com.trendrr.oss.strest.cheshire.CheshireApiCallback;
 import com.trendrr.oss.strest.cheshire.Verb;
+import com.trendrr.oss.strest.models.StrestHeader;
+import com.trendrr.oss.strest.models.StrestHello;
 import com.trendrr.oss.strest.models.StrestRequest;
 import com.trendrr.oss.strest.models.StrestResponse;
 import com.trendrr.oss.strest.models.StrestHeader.TxnStatus;
@@ -48,6 +50,14 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class CheshireNetty4Client extends com.trendrr.cheshire.client.CheshireClient {
 	
+	
+	public static enum PROTOCOL {
+		JSON,
+		BINARY
+	}
+	
+	public static String USER_AGENT = "java-netty4-1.0";
+	
 	protected Channel channel;
 	
 	protected ExecutorService executor;
@@ -65,6 +75,7 @@ public class CheshireNetty4Client extends com.trendrr.cheshire.client.CheshireCl
 	 */
 	protected int MAX_INFLIGHT_WAIT_SECONDS = 30;
 	
+	protected PROTOCOL protocol;
 		
 	public static void main(String ...args) throws Exception {
 		ThreadPoolExecutor executor = new ThreadPoolExecutor(
@@ -76,7 +87,7 @@ public class CheshireNetty4Client extends com.trendrr.cheshire.client.CheshireCl
 			    new ThreadPoolExecutor.CallerRunsPolicy() //if queue is full run in current thread.
 		);
 		
-		CheshireNetty4Client c = new CheshireNetty4Client("platform.trendrr.com", 8009, executor);
+		CheshireNetty4Client c = new CheshireNetty4Client("platform.trendrr.com", 8009, executor, PROTOCOL.JSON);
 		c.connect();
 		
 		c.apiCall("/ping", Verb.GET, null, new CheshireApiCallback() {
@@ -103,9 +114,10 @@ public class CheshireNetty4Client extends com.trendrr.cheshire.client.CheshireCl
 	 * @param host
 	 * @param port
 	 */
-	public CheshireNetty4Client(String host, int port, ExecutorService service) {
+	public CheshireNetty4Client(String host, int port, ExecutorService service, PROTOCOL protocol) {
 		super(host, port);
 		this.executor = service;
+		this.protocol = protocol;
 	}
 	
 	
@@ -119,7 +131,7 @@ public class CheshireNetty4Client extends com.trendrr.cheshire.client.CheshireCl
 		Bootstrap b = new Bootstrap()
 			.group(group)
             .channel(NioSocketChannel.class)
-            .handler(new Initializer());
+            .handler(new Initializer(this.protocol));
         
         // Start the connection attempt.
         this.channel = b.connect(host, port).sync().channel();
@@ -128,8 +140,11 @@ public class CheshireNetty4Client extends com.trendrr.cheshire.client.CheshireCl
         attr.set(this);
         
         //TODO: send hello
+        StrestHello hello = new StrestHello();
+        hello.setUserAgent(USER_AGENT);
+        hello.setVersion(StrestHeader.STREST_VERSION);
         
-        
+        this.channel.writeAndFlush(hello);
         
       //start the ping timer.
 		final CheshireNetty4Client self = this;

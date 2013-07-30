@@ -17,8 +17,9 @@ import org.apache.commons.logging.LogFactory;
 
 import com.trendrr.cheshire.client.CheshireClient;
 import com.trendrr.cheshire.client.CheshireListenableFuture;
-import com.trendrr.cheshire.client.netty4.Pool.Creator;
 import com.trendrr.oss.DynMap;
+import com.trendrr.oss.Pool;
+import com.trendrr.oss.Pool.Creator;
 import com.trendrr.oss.exceptions.TrendrrClosedException;
 import com.trendrr.oss.exceptions.TrendrrDisconnectedException;
 import com.trendrr.oss.exceptions.TrendrrException;
@@ -37,10 +38,7 @@ import com.trendrr.oss.strest.models.StrestRequest;
  */
 public class CheshirePool extends CheshireClient {
 
-	public static enum TYPE {
-		JSON,
-		BINARY
-	}
+
 	
 	
 	
@@ -48,7 +46,7 @@ public class CheshirePool extends CheshireClient {
 	protected static Log log = LogFactory.getLog(CheshirePool.class);
 	
 	private Pool<CheshireClient> pool;
-	protected CheshirePool.TYPE type;
+	protected CheshireNetty4Client.PROTOCOL protocol;
 	protected ExecutorService callbackExecutor;
 	protected EventLoopGroup evloop;
 	
@@ -63,13 +61,9 @@ public class CheshirePool extends CheshireClient {
 		}
 		@Override
 		public CheshireClient create() throws Exception {
-			if (this.parent.type == TYPE.JSON) {
-				CheshireNetty4Client c = new CheshireNetty4Client(this.parent.host, this.parent.port, this.parent.callbackExecutor);
-				c.connect(this.parent.evloop);
-				return c;
-			} 
-			//TODO: Binary and http
-			throw new TrendrrException("Unsupported type: " + this.parent.type);
+			CheshireNetty4Client c = new CheshireNetty4Client(this.parent.host, this.parent.port, this.parent.callbackExecutor, this.parent.protocol);
+			c.connect(this.parent.evloop);
+			return c;
 		}
 		@Override
 		public void cleanup(CheshireClient obj) {
@@ -81,9 +75,9 @@ public class CheshirePool extends CheshireClient {
 	 * @param host
 	 * @param port
 	 */
-	public CheshirePool(String host, int port, int poolsize, CheshirePool.TYPE connectionType) {
+	public CheshirePool(String host, int port, int poolsize, CheshireNetty4Client.PROTOCOL protocol) {
 		super(host, port);
-		this.type = connectionType;	
+		this.protocol = protocol;	
 		this.callbackExecutor = new ThreadPoolExecutor(
 				1, // core size
 			    50, // max size
