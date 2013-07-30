@@ -154,7 +154,7 @@ public class CheshireNettyClient extends com.trendrr.cheshire.client.CheshireCli
 			log.error("SERVER SENT Response to Transaction: " + txnId + " Which is either closed or doesn't exist!");
 			return;
 		}
-		cb.set(DynMap.instance(response));
+		cb.set(response);
 		TxnStatus txnStat = response.getTxnStatus();
 		if (txnStat != TxnStatus.CONTINUE) {
 			this.futures.remove(txnId);

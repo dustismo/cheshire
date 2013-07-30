@@ -36,6 +36,7 @@ import com.trendrr.oss.strest.models.StrestRequest;
 import com.trendrr.oss.strest.models.StrestHeader.Method;
 import com.trendrr.oss.strest.models.StrestHeader.TxnAccept;
 import com.trendrr.oss.strest.models.json.StrestJsonRequest;
+import com.trendrr.oss.strest.models.json.StrestJsonResponse;
 
 
 /**
@@ -103,7 +104,8 @@ public class CheshireHttpClient extends CheshireClient {
 	
 				        @Override
 				        public Integer onCompleted(Response response) throws Exception{
-				        	result.set(DynMap.instance(response.getResponseBody()));
+				        	StrestJsonResponse resp = new StrestJsonResponse(DynMap.instance(response.getResponseBody()));
+				        	result.set(resp);
 				            return response.getStatusCode();
 				        }
 	

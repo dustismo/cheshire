@@ -14,13 +14,14 @@ import com.google.common.util.concurrent.Futures;
 import com.trendrr.cheshire.client.json.CheshireNettyClient;
 import com.trendrr.oss.DynMap;
 import com.trendrr.oss.strest.cheshire.CheshireApiCallback;
+import com.trendrr.oss.strest.models.StrestResponse;
 
 /**
  * @author Dustin Norlander
  * @created Oct 17, 2012
  * 
  */
-public class CheshireListenableFuture extends AbstractFuture<DynMap> {
+public class CheshireListenableFuture extends AbstractFuture<StrestResponse> {
 
 	protected static Log log = LogFactory.getLog(CheshireListenableFuture.class);
 
@@ -33,17 +34,16 @@ public class CheshireListenableFuture extends AbstractFuture<DynMap> {
 	
 	public void setCallback(CheshireApiCallback cb) {
 		this.callback = cb;
-		Futures.addCallback(this, new FutureCallback<DynMap>(){
+		Futures.addCallback(this, new FutureCallback<StrestResponse>(){
 			@Override
 			public void onFailure(Throwable error) {
 				callback.error(CheshireNettyClient.toTrendrrException(error));
 			}
 
 			@Override
-			public void onSuccess(DynMap result) {
-				callback.response(result);
+			public void onSuccess(StrestResponse result) {
+				callback.response(DynMap.instance(result));
 			}
-			
 		}, this.executor);
 	}
 
@@ -57,8 +57,8 @@ public class CheshireListenableFuture extends AbstractFuture<DynMap> {
 	
 	
 	@Override
-	public boolean set(DynMap newValue) {
-	    return super.set(newValue);
+	public boolean set(StrestResponse response) {
+	    return super.set(response);
 	}
 	
 	@Override

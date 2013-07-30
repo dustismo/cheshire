@@ -15,6 +15,8 @@ import com.trendrr.oss.DynMap;
 import com.trendrr.oss.concurrent.Sleep;
 import com.trendrr.oss.strest.cheshire.CheshireApiCallback;
 import com.trendrr.oss.strest.cheshire.Verb;
+import com.trendrr.oss.strest.models.DefaultStrestRequest;
+import com.trendrr.oss.strest.models.StrestHeader.Method;
 
 
 /**
@@ -38,12 +40,22 @@ public class ThroughputTest {
 			log.error("test");
 			// 100k in about 5 seconds
 
-//			CheshirePool client1 = new CheshirePool("localhost", 8009, POOLSIZE, CheshireNetty4Client.PROTOCOL.JSON);
+			CheshirePool client1 = new CheshirePool("localhost", 8009, POOLSIZE, CheshireNetty4Client.PROTOCOL.JSON);
 			
-			CheshirePool client1 = new CheshirePool("localhost", 8011, POOLSIZE, CheshireNetty4Client.PROTOCOL.BINARY);
+//			CheshirePool client1 = new CheshirePool("localhost", 8011, POOLSIZE, CheshireNetty4Client.PROTOCOL.BINARY);
 			
 //			CheshireNetty4Client client1 = new CheshireNetty4Client("localhost", 8009, Executors.newCachedThreadPool());
 //			client1.connect();
+			
+//			DefaultStrestRequest req = new DefaultStrestRequest();
+//			req.setMethod(Method.GET);
+//			req.setUri("/ping");
+//			req.setContent("THIS IS SOME CONTENT!");
+//			CheshireListenableFuture fut = client1.apiCall(req);
+//			System.out.println(fut.get().toDynMap());
+//			if (true) {
+//				return;
+//			}
 			
 			//warm it up
 			client1.ping();

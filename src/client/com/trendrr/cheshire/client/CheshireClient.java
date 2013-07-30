@@ -93,7 +93,7 @@ public abstract class CheshireClient implements CheshireApiCaller {
 		req.setTxnAccept(TxnAccept.SINGLE);
 		CheshireListenableFuture fut = this.apiCall(req);
 		try {
-			return fut.get(timeoutMillis, TimeUnit.MILLISECONDS);
+			return DynMap.instance(fut.get(timeoutMillis, TimeUnit.MILLISECONDS));
 		} catch (Exception e) {
 			throw CheshireNettyClient.toTrendrrException(e);
 		}

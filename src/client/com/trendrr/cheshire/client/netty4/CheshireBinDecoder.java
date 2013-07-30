@@ -14,9 +14,11 @@ import io.netty.handler.codec.DelimiterBasedFrameDecoder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.trendrr.oss.DynMap;
 import com.trendrr.oss.exceptions.TrendrrException;
 import com.trendrr.oss.strest.models.DefaultStrestResponse;
 import com.trendrr.oss.strest.models.StrestHeader.ContentEncoding;
+import com.trendrr.oss.strest.models.StrestHeader.ParamEncoding;
 import com.trendrr.oss.strest.models.StrestHeader.TxnStatus;
 import com.trendrr.oss.strest.models.StrestResponse;
 
@@ -30,12 +32,14 @@ public class CheshireBinDecoder extends ByteToMessageDecoder {
 
 	protected static Log log = LogFactory.getLog(CheshireBinDecoder.class);
 	
-	protected StrestResponse response = new DefaultStrestResponse();
+	protected DefaultStrestResponse response = new DefaultStrestResponse();
 	
 	protected Position position = Position.TXN_ID_LEN;
 	
 	//if we read the length of a string, but not the string, yet
 	protected int length;
+	
+	protected ParamEncoding paramencoding;
 	
 //	[length][txn_id (string)]
 //	[txn_status(int8)]
@@ -51,6 +55,9 @@ public class CheshireBinDecoder extends ByteToMessageDecoder {
 		STATUS,
 		STATUS_MESSAGE_LEN,
 		STATUS_MESSAGE,
+		PARAMS_ENCODING,
+		PARAMS_LEN,
+		PARAMS,
 		CONTENT_ENCODING,
 		CONTENT_LEN,
 		CONTENT,
@@ -98,7 +105,7 @@ public class CheshireBinDecoder extends ByteToMessageDecoder {
 			 byte[] bytes = buf.readBytes(this.length).array();
 			 this.response.setTxnId(new String(bytes, "utf8"));
 			 return Position.TXN_STATUS;
-		 case TXN_STATUS:
+		 case TXN_STATUS: {
 			 byte b = buf.readByte();
 			 TxnStatus status = TxnStatus.instance(b);
 			 if (status == null) {
@@ -106,24 +113,48 @@ public class CheshireBinDecoder extends ByteToMessageDecoder {
 			 }
 			 this.response.setTxnStatus(status);
 			 return Position.STATUS;
-		 case STATUS:
+		 } case STATUS: {
 			 short statusCode = buf.readShort();
 			 this.response.setStatus(statusCode, "");
 			 return Position.STATUS_MESSAGE_LEN;
-		 case STATUS_MESSAGE_LEN:
+		 } case STATUS_MESSAGE_LEN: {
 			 this.length = buf.readShort();
 			 if (this.length == 0) {
 				 return Position.CONTENT_ENCODING;
 			 }
 			 return Position.STATUS_MESSAGE;
-		 case STATUS_MESSAGE:
+		 } case STATUS_MESSAGE: {
 			 if (readable < this.length) {
 				 return pos;
 			 }
 			 byte[] bt = buf.readBytes(this.length).array();
 			 this.response.setStatus(this.response.getStatusCode(), new String(bt, "utf8"));
+			 return Position.PARAMS_ENCODING;
+		 } case PARAMS_ENCODING: {
+			 byte b = buf.readByte();
+			 this.paramencoding = ParamEncoding.instance(b);
+			 if (this.paramencoding == null) {
+				 throw new TrendrrException("BAd param encoding! " + b);
+			 }
+			 return Position.PARAMS_LEN;
+		 } case PARAMS_LEN: {
+			 
+			 this.length = buf.readShort();
+			 if (this.length == 0) {
+				 return Position.CONTENT_ENCODING;
+			 }
+			 return Position.PARAMS;
+
+		 } case PARAMS: {
+			 if (readable < this.length) {
+				 return pos;
+			 }
+			 ByteBuf content = buf.readBytes(this.length);
+			 //TODO: handle different param encodings..
+			 this.response.setParams(DynMap.instance(new String(content.array(), "utf8")));
 			 return Position.CONTENT_ENCODING;
-		 case CONTENT_ENCODING:
+			 
+		 } case CONTENT_ENCODING:
 			 byte ce = buf.readByte();
 			 ContentEncoding contE = ContentEncoding.instance(ce);
 			 if (contE == null) {
