@@ -40,9 +40,9 @@ public class ThroughputTest {
 			log.error("test");
 			// 100k in about 5 seconds
 
-			CheshirePool client1 = new CheshirePool("localhost", 8009, POOLSIZE, CheshireNetty4Client.PROTOCOL.JSON);
+//			CheshirePool client1 = new CheshirePool("localhost", 8009, POOLSIZE, CheshireNetty4Client.PROTOCOL.JSON);
 			
-//			CheshirePool client1 = new CheshirePool("localhost", 8011, POOLSIZE, CheshireNetty4Client.PROTOCOL.BINARY);
+			CheshirePool client1 = new CheshirePool("localhost", 8011, POOLSIZE, CheshireNetty4Client.PROTOCOL.BINARY);
 			
 //			CheshireNetty4Client client1 = new CheshireNetty4Client("localhost", 8009, Executors.newCachedThreadPool());
 //			client1.connect();

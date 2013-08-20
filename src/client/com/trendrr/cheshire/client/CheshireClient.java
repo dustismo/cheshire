@@ -17,9 +17,11 @@ import com.trendrr.oss.DynMap;
 import com.trendrr.oss.exceptions.TrendrrDisconnectedException;
 import com.trendrr.oss.exceptions.TrendrrException;
 import com.trendrr.oss.exceptions.TrendrrTimeoutException;
+import com.trendrr.oss.strest.StrestRequestCallback;
 import com.trendrr.oss.strest.cheshire.CheshireApiCallback;
 import com.trendrr.oss.strest.cheshire.CheshireApiCaller;
 import com.trendrr.oss.strest.cheshire.Verb;
+import com.trendrr.oss.strest.models.StrestHello;
 import com.trendrr.oss.strest.models.StrestRequest;
 import com.trendrr.oss.strest.models.StrestHeader.Method;
 import com.trendrr.oss.strest.models.StrestHeader.TxnAccept;
@@ -48,12 +50,17 @@ public abstract class CheshireClient implements CheshireApiCaller {
 	protected Date lastSuccessfulPing = new Date();
 	protected int defaultPingTimeoutSeconds = 30;
 	
+	protected StrestHello hello = new StrestHello();
+	
+
+
+
 	public CheshireClient(String host, int port) {
 		this.host = host;
 		this.port = port;
 	}
 	
-	
+
 	/**
 	 * Does an asynchronous api call.  This method returns immediately. the Response or error is sent to the callback.
 	 * 
@@ -99,6 +106,11 @@ public abstract class CheshireClient implements CheshireApiCaller {
 		}
 	}
 
+	public void apiCall(StrestRequest req, StrestRequestCallback callback) throws TrendrrDisconnectedException {
+		CheshireListenableFuture fut = this.apiCall(req);
+		fut.setStrestCallback(callback);
+	}
+	
 	public abstract CheshireListenableFuture apiCall(StrestRequest req) throws TrendrrDisconnectedException;
 	
 	/* (non-Javadoc)
@@ -116,6 +128,19 @@ public abstract class CheshireClient implements CheshireApiCaller {
 	public int getPort() {
 		return this.port;
 	}
+	
+	public StrestHello getHello() {
+		return hello;
+	}
+
+	/**
+	 * Sets the hello message.  currently this only affects the binary protocol.
+	 * @param hello
+	 */
+	public void setHello(StrestHello hello) {
+		this.hello = hello;
+	}
+	
 	
 	void cancelFuture(CheshireListenableFuture fut) {
 		//override in subclass if needed

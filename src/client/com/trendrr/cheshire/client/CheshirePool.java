@@ -62,6 +62,7 @@ public class CheshirePool extends CheshireClient {
 		@Override
 		public CheshireClient create() throws Exception {
 			CheshireNetty4Client c = new CheshireNetty4Client(this.parent.host, this.parent.port, this.parent.callbackExecutor, this.parent.protocol);
+			c.setHello(this.parent.getHello());
 			c.connect(this.parent.evloop);
 			return c;
 		}

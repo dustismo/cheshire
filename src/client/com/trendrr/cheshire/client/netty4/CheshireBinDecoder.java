@@ -112,16 +112,20 @@ public class CheshireBinDecoder extends ByteToMessageDecoder {
 				 throw new TrendrrException("Bad txn status! " + b);
 			 }
 			 this.response.setTxnStatus(status);
+//			 log.warn(status);
 			 return Position.STATUS;
 		 } case STATUS: {
 			 short statusCode = buf.readShort();
+//			 log.warn("Status code: " + statusCode);
 			 this.response.setStatus(statusCode, "");
 			 return Position.STATUS_MESSAGE_LEN;
 		 } case STATUS_MESSAGE_LEN: {
 			 this.length = buf.readShort();
+//			 log.warn("status message len: " + this.length);
 			 if (this.length == 0) {
 				 return Position.CONTENT_ENCODING;
 			 }
+			 
 			 return Position.STATUS_MESSAGE;
 		 } case STATUS_MESSAGE: {
 			 if (readable < this.length) {
@@ -129,6 +133,7 @@ public class CheshireBinDecoder extends ByteToMessageDecoder {
 			 }
 			 byte[] bt = buf.readBytes(this.length).array();
 			 this.response.setStatus(this.response.getStatusCode(), new String(bt, "utf8"));
+//			 log.warn("status message: " + this.response.getStatusMessage());
 			 return Position.PARAMS_ENCODING;
 		 } case PARAMS_ENCODING: {
 			 byte b = buf.readByte();
@@ -136,10 +141,15 @@ public class CheshireBinDecoder extends ByteToMessageDecoder {
 			 if (this.paramencoding == null) {
 				 throw new TrendrrException("BAd param encoding! " + b);
 			 }
+//			 log.warn(this.paramencoding);
 			 return Position.PARAMS_LEN;
 		 } case PARAMS_LEN: {
 			 
-			 this.length = buf.readShort();
+			 if (readable < 4) {
+				 return pos;
+			 }
+			 this.length = buf.readInt();
+			
 			 if (this.length == 0) {
 				 return Position.CONTENT_ENCODING;
 			 }

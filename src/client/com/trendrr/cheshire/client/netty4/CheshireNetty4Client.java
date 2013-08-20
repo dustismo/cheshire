@@ -152,7 +152,10 @@ public class CheshireNetty4Client extends com.trendrr.cheshire.client.CheshireCl
         attr.set(this);
         
         //TODO: send hello
-        StrestHello hello = new StrestHello();
+        StrestHello hello = this.getHello();
+        if (hello == null) {
+        	hello = new StrestHello();
+        }
         hello.setUserAgent(USER_AGENT);
         hello.setVersion(StrestHeader.STREST_VERSION);
         
@@ -229,7 +232,7 @@ public class CheshireNetty4Client extends com.trendrr.cheshire.client.CheshireCl
 	
 	static AtomicLong l = new AtomicLong(0l);
 	protected String txnId() {
-		return Long.toString(l.incrementAndGet());
+		return "STREST" + Long.toString(l.incrementAndGet()) + "END";
 	}
 	
 	public boolean isConnected() {

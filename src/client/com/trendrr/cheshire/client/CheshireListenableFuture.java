@@ -13,6 +13,7 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.trendrr.cheshire.client.json.CheshireNettyClient;
 import com.trendrr.oss.DynMap;
+import com.trendrr.oss.strest.StrestRequestCallback;
 import com.trendrr.oss.strest.cheshire.CheshireApiCallback;
 import com.trendrr.oss.strest.models.StrestResponse;
 
@@ -27,9 +28,25 @@ public class CheshireListenableFuture extends AbstractFuture<StrestResponse> {
 
 	ExecutorService executor;
 	CheshireApiCallback callback = null;
+	StrestRequestCallback strestCallback = null;
 	
 	public CheshireListenableFuture(ExecutorService pool) {
 		this.executor = pool;
+	}
+	
+	public void setStrestCallback(StrestRequestCallback cb) {
+		this.strestCallback = cb;
+		Futures.addCallback(this, new FutureCallback<StrestResponse>(){
+			@Override
+			public void onFailure(Throwable error) {
+				strestCallback.error(CheshireNettyClient.toTrendrrException(error));
+			}
+
+			@Override
+			public void onSuccess(StrestResponse result) {
+				strestCallback.response(result);
+			}
+		}, this.executor);
 	}
 	
 	public void setCallback(CheshireApiCallback cb) {
