@@ -29,7 +29,10 @@ public class CheshireListenableFuture extends AbstractFuture<StrestResponse> {
 	ExecutorService executor;
 	CheshireApiCallback callback = null;
 	StrestRequestCallback strestCallback = null;
+	CheshireClient client = null;
 	
+
+
 	public CheshireListenableFuture(ExecutorService pool) {
 		this.executor = pool;
 	}
@@ -86,5 +89,13 @@ public class CheshireListenableFuture extends AbstractFuture<StrestResponse> {
 	@Override
 	public boolean cancel(boolean mayInterruptIfRunning) {
 		return super.cancel(mayInterruptIfRunning);
+	}
+	
+	public CheshireClient getClient() {
+		return client;
+	}
+
+	public void setClient(CheshireClient client) {
+		this.client = client;
 	}
 }
