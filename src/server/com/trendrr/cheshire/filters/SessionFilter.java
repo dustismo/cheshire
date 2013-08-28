@@ -201,6 +201,8 @@ public class SessionFilter extends CheshireFilter {
 			sessionId = UUID.randomUUID().toString();
 			Cookie cookie = new DefaultCookie(SESSION, sessionId);
 			cookie.setMaxAge(this.maxAge);
+			cookie.setSecure(true);
+			cookie.setHttpOnly(true);
 			cookie.setPath("/");
 			cookieEncoder.addCookie(cookie);
 	        controller.getResponse().addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
