@@ -25,6 +25,7 @@ import com.trendrr.cheshire.client.netty4.CheshireNetty4Client;
 import com.trendrr.cheshire.client.sharded.exceptions.CheshireNoShardParams;
 import com.trendrr.oss.DynMap;
 import com.trendrr.oss.StringHelper;
+import com.trendrr.oss.concurrent.Sleep;
 import com.trendrr.oss.exceptions.TrendrrDisconnectedException;
 import com.trendrr.oss.exceptions.TrendrrException;
 import com.trendrr.oss.exceptions.TrendrrParseException;
@@ -73,6 +74,12 @@ public class CheshireShardClient {
 		for (String seed : seedurls) {
 			this.seedUrls.add(StringHelper.trim(seed, "/"));
 		}
+	}
+	
+	public void close() {
+		//TODO
+		log.warn("Close not yet implemented");
+		
 	}
 	
 	public void connect() throws Exception {
@@ -201,16 +208,50 @@ public class CheshireShardClient {
 	}
 	
 	public StrestResponse apiCall(StrestRequest request, long timeoutMillis) throws TrendrrDisconnectedException, CheshireNoShardParams, TrendrrException {
-		CheshireListenableFuture fut = this.apiCall(request);
-		try {
-			StrestResponse resp = fut.get(timeoutMillis, TimeUnit.MILLISECONDS);
-			//TODO: deal with retries!
-			return resp;
-		} catch (Exception e) {
-			throw CheshireNettyClient.toTrendrrException(e);
+		for (int i=0 ; i < maxRetries; i++) {
+			
+			CheshireListenableFuture fut = this.apiCall(request);
+			StrestResponse response = null;
+			try {
+				response = fut.get(timeoutMillis, TimeUnit.MILLISECONDS);
+			} catch (Exception e) {
+				throw CheshireNettyClient.toTrendrrException(e);
+			}
+			
+			int code = response.getStatusCode();
+			
+			if (code > 630 && code < 640) {
+				//router table issue
+				if (code == CheshireShardClient.E_ROUTER_TABLE_OLD ||
+						 code == CheshireShardClient.E_NOT_MY_PARTITION) {
+					try {
+						this.requestRouterTable(fut.getClient());
+						continue;
+					} catch (Exception x) {
+						throw CheshireNettyClient.toTrendrrException(x);
+					}
+				}
+				if (code == CheshireShardClient.E_SEND_ROUTER_TABLE) {
+					try {
+						this.sendRouterTable(fut.getClient());
+						continue;
+					} catch (Exception x) {
+						throw CheshireNettyClient.toTrendrrException(x);
+					}
+				}
+				if (code == CheshireShardClient.E_PARTITION_LOCKED) {
+					log.warn("Partition locked, try again in 3 second");
+					Sleep.seconds(3);
+					continue;
+				}
+				log.warn("Unknown response code: " + response.getStatusCode() + " " + response.getStatusMessage());	
+			}
+			
+			//else good response.
+			return response;
 		}
+		throw new TrendrrException("Tried " + maxRetries + " times to send message, giving up...");
 	}
-	
 	
 	public void apiCall(StrestRequest request, StrestRequestCallback callback) throws TrendrrDisconnectedException, CheshireNoShardParams {
 		CheshireListenableFuture fut = this.apiCall(request);
@@ -225,6 +266,8 @@ public class CheshireShardClient {
 		cb.client = this;
 		cb.connection = fut.getClient();
 		cb.request = request;
+		cb.cb = callback;
+		
 		fut.setStrestCallback(cb);
 	}
 	
@@ -236,7 +279,7 @@ public class CheshireShardClient {
 		try {
 			ShardRequest shard = req.getShardRequest();
 			if (shard == null) {
-				throw new CheshireNoShardParams();
+				throw new CheshireNoShardParams("no ShardRequest");
 			}
 			
 			int partition = shard.getPartition();
@@ -244,7 +287,7 @@ public class CheshireShardClient {
 				//try the key
 				String key = shard.getKey();
 				if (key == null) {
-					throw new CheshireNoShardParams();
+					throw new CheshireNoShardParams("No key");
 				}
 				
 				try {
@@ -254,7 +297,7 @@ public class CheshireShardClient {
 				}
 			}
 			if (partition < 0) {
-				throw new CheshireNoShardParams();
+				throw new CheshireNoShardParams("No key or partition");
 			}
 			
 			shard.setPartition(partition);
@@ -274,7 +317,7 @@ public class CheshireShardClient {
 					return result;
 				}
 			}
-			throw new CheshireNoShardParams();
+			throw new CheshireNoShardParams("Unknown problem.  ack.");
 			
 		} finally {
 			this.lock.readLock().unlock();

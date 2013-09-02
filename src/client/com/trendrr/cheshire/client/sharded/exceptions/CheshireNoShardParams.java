@@ -17,4 +17,8 @@ import com.trendrr.oss.exceptions.TrendrrException;
 public class CheshireNoShardParams extends TrendrrException {
 
 	protected static Log log = LogFactory.getLog(CheshireNoShardParams.class);
+	
+	public CheshireNoShardParams(String message) {
+		super(message);
+	}
 }
