@@ -3,12 +3,7 @@
  */
 package com.trendrr.cheshire.client.sharded;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -101,20 +96,19 @@ public class CheshireShardClient {
 	}
 	
 	private long lastRTReq = 0l;
-	synchronized void requestRouterTable(CheshireClient client) throws Exception {
+	synchronized void requestRouterTable(/*CheshireClient client*/) throws Exception {
 		long cur = new Date().getTime();
 		//only allow one rt request per second.
 		if (cur - lastRTReq < 1000) {
+            log.warn("Requested a router table " + (cur-lastRTReq) + " millis ago.  too soon..");
 			return;
 		}
 		try {
-			StrestRequest request = new DefaultStrestRequest();
-			request.setMethod(Method.GET);
-			request.setUri("/__c/rt/get");
-			CheshireListenableFuture fut = client.apiCall(request);
-			StrestResponse response = fut.get(15, TimeUnit.SECONDS);
-			DynMap rt = response.getParams().getMap("router_table");
-			this.setRouterTable(RouterTable.parse(rt));
+			ArrayList<String> urls = new ArrayList<String>(this.seedUrls);
+            Collections.shuffle(urls);
+            String url = urls.get(0);
+            RouterTable rt = getRouterTable(url);
+            this.setRouterTable(rt);
 		} finally {
 			lastRTReq = new Date().getTime();
 		}
@@ -143,7 +137,7 @@ public class CheshireShardClient {
 	 * @throws Exception
 	 */
 	public void setRouterTable(RouterTable rt) throws Exception {
-		System.out.println("Setting router table!!!");
+		log.warn("Setting router table!!!");
 		System.out.println(rt.getJson());
 		this.lock.writeLock().lock();
 		HashMap<String, CheshireClient> newClientMap = new HashMap<String, CheshireClient>();
@@ -151,6 +145,7 @@ public class CheshireShardClient {
 			if (this.routerTable != null) {
 				//check the revision
 				if (rt.getRevision() == this.routerTable.getRevision()) {
+                    log.warn("Current router table is current!");
 					return; //do nothing
 				}
 				
@@ -162,12 +157,15 @@ public class CheshireShardClient {
 			
 			
 			//connect all
+
+            //add to seeds.
 			for (RouterTableEntry entry : this.routerTable.getEntries()) {
 				CheshireClient client = this.clients.remove(entry.getId());
 				if (client == null) {
 					client = this.createClient(entry);
 				}
 				newClientMap.put(entry.getId(), client);
+                this.seedUrls.add("http://" + entry.getAddress() + ":" + entry.getHttpPort());
 			}
 			
 			//Close any other clients
@@ -225,9 +223,10 @@ public class CheshireShardClient {
 				if (code == CheshireShardClient.E_ROUTER_TABLE_OLD ||
 						 code == CheshireShardClient.E_NOT_MY_PARTITION) {
 					try {
-						this.requestRouterTable(fut.getClient());
+						this.requestRouterTable(/*fut.getClient()*/);
 						continue;
 					} catch (Exception x) {
+                        log.warn("Caught", x);
 						throw CheshireNettyClient.toTrendrrException(x);
 					}
 				}
@@ -236,6 +235,7 @@ public class CheshireShardClient {
 						this.sendRouterTable(fut.getClient());
 						continue;
 					} catch (Exception x) {
+                        log.warn("Caught", x);
 						throw CheshireNettyClient.toTrendrrException(x);
 					}
 				}
@@ -307,6 +307,7 @@ public class CheshireShardClient {
 			
 			//now find the right client
 			for (RouterTableEntry entry : this.routerTable.getEntries(partition)) {
+
 				CheshireClient client = this.clients.get(entry.getId());
 				if (client == null) {
 					continue;
@@ -344,18 +345,14 @@ public class CheshireShardClient {
 	 * @throws InterruptedException 
 	 */
 	public static RouterTable getRouterTable(String url) throws Exception {
-		System.out.println(url);
+		log.warn("Requesting router table from " + url);
 		StrestRequest request = new DefaultStrestRequest();
 		request.setMethod(Method.GET);
 		request.setUri("/__c/rt/get");
 		CheshireListenableFuture fut = CheshireHttpClient.api(url, request);
 		StrestResponse response = fut.get(15, TimeUnit.SECONDS);
 		DynMap rt = response.getParams().getMap("router_table");
-try {
-	RouterTable.parse(rt);
-} catch (Exception x) {
-	x.printStackTrace();
-}
+        log.warn("Got router table \n" + rt.toJSONString() + "\n");
 		return RouterTable.parse(rt);
 	}
 	
