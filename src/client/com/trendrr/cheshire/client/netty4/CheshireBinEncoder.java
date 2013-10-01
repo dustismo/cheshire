@@ -41,35 +41,37 @@ public class CheshireBinEncoder extends MessageToByteEncoder<StrestRequest> {
 //				[params (array)]
 //				[content_encoding (int8)]
 //				[content_length (int32)][content (array)]
-		ShardRequest shard = request.getShardRequest();
-		if (shard == null) {
-			out.writeShort((short)-1);
-			out.writeShort((short)0);
-			out.writeLong(0l);
-		} else {
-			out.writeShort((short)shard.getPartition());
-			BinaryHelper.writeString(out, shard.getKey());
-			out.writeLong(shard.getRevision());
-		}
-		
-		BinaryHelper.writeString(out, request.getTxnId());
-		out.writeByte(request.getTxnAccept().getBinary());
-		out.writeByte(request.getMethod().getBinary());
-		BinaryHelper.writeString(out, request.getUri());
-		out.writeByte(StrestHeader.ParamEncoding.JSON.getBinary());
-		if (request.getParams() != null) {
-			BinaryHelper.writeString(out, request.getParams().toJSONString());
-		} else {
-			BinaryHelper.writeString(out, "");
-		}
-		if (request.getContentEncoding() != null) {
-			out.writeByte(request.getContentEncoding().getBinary());
-		} else {
-			out.writeByte(StrestHeader.ContentEncoding.BYTES.getBinary());
-		}
-		out.writeInt(request.getContentLength());
-		if (request.getContentLength() > 0) {
-			out.writeBytes(request.getContent(), request.getContentLength());
-		}
+
+            ShardRequest shard = request.getShardRequest();
+            if (shard == null) {
+                out.writeShort((short)-1);
+                out.writeShort((short)0);
+                out.writeLong(0l);
+            } else {
+                out.writeShort((short)shard.getPartition());
+                BinaryHelper.writeString(out, shard.getKey());
+                out.writeLong(shard.getRevision());
+            }
+
+            BinaryHelper.writeString(out, request.getTxnId());
+            out.writeByte(request.getTxnAccept().getBinary());
+            out.writeByte(request.getMethod().getBinary());
+            BinaryHelper.writeString(out, request.getUri());
+            out.writeByte(StrestHeader.ParamEncoding.JSON.getBinary());
+            if (request.getParams() != null) {
+                BinaryHelper.writeString32(out, request.getParams().toJSONString());
+            } else {
+                BinaryHelper.writeString32(out, "");
+            }
+            if (request.getContentEncoding() != null) {
+                out.writeByte(request.getContentEncoding().getBinary());
+            } else {
+                out.writeByte(StrestHeader.ContentEncoding.BYTES.getBinary());
+            }
+            out.writeInt(request.getContentLength());
+            if (request.getContentLength() > 0) {
+                out.writeBytes(request.getContent(), request.getContentLength());
+            }
+
 	}
 }
