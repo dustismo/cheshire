@@ -46,18 +46,22 @@ class CallbackWrapper implements StrestRequestCallback {
 			if (code == CheshireShardClient.E_ROUTER_TABLE_OLD ||
 					 code == CheshireShardClient.E_NOT_MY_PARTITION) {
 				try {
-					this.client.requestRouterTable(this.connection);
+                    log.warn("Got a not old router table problem: " + code + " " + request.getShardRequest().getRevision() + " " + request.getUri() + " client: " + this.connection.getHost() + " partition: " + this.request.getShardRequest().getPartition());
+					this.client.requestRouterTable(/*this.connection*/);
 					client.retryApiCall(this, 0);
 				} catch (Exception x) {
+                    log.warn("Caught", x);
 					this.error(x);
 				}
 				return;
 			}
 			if (code == CheshireShardClient.E_SEND_ROUTER_TABLE) {
 				try {
+                    log.warn("Client wants a router table");
 					this.client.sendRouterTable(this.connection);
 					client.retryApiCall(this, 0);
 				} catch (Exception x) {
+                    log.warn("Caught", x);
 					this.error(x);
 				}
 				return;
