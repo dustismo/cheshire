@@ -85,7 +85,7 @@ public class CheshireBinDecoder extends ByteToMessageDecoder {
 	 
 	 /**
 	  * reads the next section.  returns true if read, false if there are not enough bytes in the buffer.
-	  * @param last
+	  * @param pos
 	  * @param buf
 	  * @return
 	  */
