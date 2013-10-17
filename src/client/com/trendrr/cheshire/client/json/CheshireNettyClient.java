@@ -66,6 +66,7 @@ import com.trendrr.oss.strest.models.json.StrestJsonRequest;
  * @author Dustin Norlander
  * @created Oct 17, 2012
  * 
+ * @deprecated use the CheshireNetty4Client 
  */
 public class CheshireNettyClient extends com.trendrr.cheshire.client.CheshireClient{
 
@@ -153,7 +154,7 @@ public class CheshireNettyClient extends com.trendrr.cheshire.client.CheshireCli
 			log.error("SERVER SENT Response to Transaction: " + txnId + " Which is either closed or doesn't exist!");
 			return;
 		}
-		cb.set(DynMap.instance(response));
+		cb.set(response);
 		TxnStatus txnStat = response.getTxnStatus();
 		if (txnStat != TxnStatus.CONTINUE) {
 			this.futures.remove(txnId);

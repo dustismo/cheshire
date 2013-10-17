@@ -34,8 +34,9 @@ import com.trendrr.oss.strest.models.StrestRequest;
  * 
  * @author Dustin Norlander
  * @created Mar 19, 2013
- * 
+ * @deprecated use the CheshirePool
  */
+@Deprecated 
 public class CheshirePooledClient extends CheshireClient {
 
 	protected static Log log = LogFactory.getLog(CheshirePooledClient.class);

@@ -17,9 +17,11 @@ import com.trendrr.oss.DynMap;
 import com.trendrr.oss.exceptions.TrendrrDisconnectedException;
 import com.trendrr.oss.exceptions.TrendrrException;
 import com.trendrr.oss.exceptions.TrendrrTimeoutException;
+import com.trendrr.oss.strest.StrestRequestCallback;
 import com.trendrr.oss.strest.cheshire.CheshireApiCallback;
 import com.trendrr.oss.strest.cheshire.CheshireApiCaller;
 import com.trendrr.oss.strest.cheshire.Verb;
+import com.trendrr.oss.strest.models.StrestHello;
 import com.trendrr.oss.strest.models.StrestRequest;
 import com.trendrr.oss.strest.models.StrestHeader.Method;
 import com.trendrr.oss.strest.models.StrestHeader.TxnAccept;
@@ -48,12 +50,17 @@ public abstract class CheshireClient implements CheshireApiCaller {
 	protected Date lastSuccessfulPing = new Date();
 	protected int defaultPingTimeoutSeconds = 30;
 	
+	protected StrestHello hello = new StrestHello();
+	
+
+
+
 	public CheshireClient(String host, int port) {
 		this.host = host;
 		this.port = port;
 	}
 	
-	
+
 	/**
 	 * Does an asynchronous api call.  This method returns immediately. the Response or error is sent to the callback.
 	 * 
@@ -66,8 +73,12 @@ public abstract class CheshireClient implements CheshireApiCaller {
 	public void apiCall(String endPoint, Verb method, Map params, CheshireApiCallback callback) {
 		StrestRequest req = this.createRequest(endPoint, method, params);
 		req.setTxnAccept(TxnAccept.MULTI);
-		CheshireListenableFuture fut = this.apiCall(req);
-		fut.setCallback(callback);
+		try {
+			CheshireListenableFuture fut = this.apiCall(req);
+			fut.setCallback(callback);
+		} catch (Exception x) {
+			callback.error(x);
+		}
 		return;
 	}
 	
@@ -89,13 +100,18 @@ public abstract class CheshireClient implements CheshireApiCaller {
 		req.setTxnAccept(TxnAccept.SINGLE);
 		CheshireListenableFuture fut = this.apiCall(req);
 		try {
-			return fut.get(timeoutMillis, TimeUnit.MILLISECONDS);
+			return DynMap.instance(fut.get(timeoutMillis, TimeUnit.MILLISECONDS));
 		} catch (Exception e) {
 			throw CheshireNettyClient.toTrendrrException(e);
 		}
 	}
 
-	public abstract CheshireListenableFuture apiCall(StrestRequest req);
+	public void apiCall(StrestRequest req, StrestRequestCallback callback) throws TrendrrDisconnectedException {
+		CheshireListenableFuture fut = this.apiCall(req);
+		fut.setStrestCallback(callback);
+	}
+	
+	public abstract CheshireListenableFuture apiCall(StrestRequest req) throws TrendrrDisconnectedException;
 	
 	/* (non-Javadoc)
 	 * @see com.trendrr.oss.strest.cheshire.CheshireApiCaller#getHost()
@@ -113,12 +129,29 @@ public abstract class CheshireClient implements CheshireApiCaller {
 		return this.port;
 	}
 	
+	public StrestHello getHello() {
+		return hello;
+	}
+
+	/**
+	 * Sets the hello message.  currently this only affects the binary protocol.
+	 * @param hello
+	 */
+	public void setHello(StrestHello hello) {
+		this.hello = hello;
+	}
+	
+	
 	void cancelFuture(CheshireListenableFuture fut) {
 		//override in subclass if needed
 	}
 	
+	protected StrestRequest newRequest() {
+		return  new StrestJsonRequest();
+	}
+	
 	protected StrestRequest createRequest(String endPoint, Verb method, Map params) {
-		StrestJsonRequest request = new StrestJsonRequest();
+		StrestRequest request = this.newRequest();
 		request.setUri(endPoint);
 		request.setMethod(Method.instance(method.toString())); //TODO:this is stuuupid
 		if (params != null) {
