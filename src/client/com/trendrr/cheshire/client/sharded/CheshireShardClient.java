@@ -273,7 +273,7 @@ public class CheshireShardClient {
 	
 	
 	
-	protected CheshireListenableFuture apiCall(StrestRequest req) throws TrendrrDisconnectedException, CheshireNoShardParams {
+	public CheshireListenableFuture apiCall(StrestRequest req) throws TrendrrDisconnectedException, CheshireNoShardParams {
 		
 		this.lock.readLock().lock();
 		try {
@@ -299,14 +299,12 @@ public class CheshireShardClient {
 			if (partition < 0) {
 				throw new CheshireNoShardParams("No key or partition");
 			}
-			
+
 			shard.setPartition(partition);
 			shard.setRevision(this.routerTable.getRevision());
 			
 			//ok, we got a partition, woot!
-			
-			//now find the right client
-			for (RouterTableEntry entry : this.routerTable.getEntries(partition)) {
+            for (RouterTableEntry entry : this.routerTable.getEntries(partition)) {
 
 				CheshireClient client = this.clients.get(entry.getId());
 				if (client == null) {
