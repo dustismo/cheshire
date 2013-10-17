@@ -21,6 +21,7 @@ import com.trendrr.oss.strest.models.StrestResponse;
  * @created Oct 17, 2012
  * 
  */
+@Deprecated
 public class CheshireClientIncomingHandler extends SimpleChannelUpstreamHandler {
 
 	protected static Log log = LogFactory.getLog(CheshireClientIncomingHandler.class);
